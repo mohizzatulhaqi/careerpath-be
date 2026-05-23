@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.7
 
 # Stage 1: chef base — install cargo-chef once, reused by both stages
-FROM rust:1.83-slim-bookworm AS chef
-RUN cargo install cargo-chef --version 0.1.67 --locked
+FROM rust:1.88-slim-bookworm AS chef
+RUN cargo install cargo-chef --version 0.1.68 --locked
 WORKDIR /app
 
 # Stage 2: Planner — compute dependency recipe
@@ -13,10 +13,11 @@ RUN cargo chef prepare --recipe-path recipe.json
 # Stage 3: Builder — cache deps, then build app
 FROM chef AS builder
 
-# Install build-time system deps
+# Install build-time system deps 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     libssl-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Cook dependencies — this layer is cached as long as recipe.json doesn't change
@@ -31,9 +32,7 @@ ENV SQLX_OFFLINE=true
 
 RUN cargo build --release --bin career-path-be
 
-# ============================================================
 # Stage 4: Runtime — minimal image, binary only
-# ============================================================
 FROM debian:bookworm-slim AS runtime
 
 # Install minimal runtime deps: TLS certs, libssl, curl (for healthcheck)

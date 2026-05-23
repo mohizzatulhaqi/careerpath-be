@@ -1,45 +1,32 @@
 version: "3.9"
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: career_path_postgres
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: career-path-be:latest
+    container_name: career_path_app
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-careerpath}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-careerpath_dev_password}
-      POSTGRES_DB: ${POSTGRES_DB:-career_path}
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-900}
+      REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-604800}
+      SERVER_PORT: ${SERVER_PORT:-3002}
+      STORAGE_ROOT: /app/storage
+      RUST_LOG: ${RUST_LOG:-info,career_path_be=info}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-careerpath} -d ${POSTGRES_DB:-career_path}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - career_path_net
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: career_path_pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@careerpath.local}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-      - ./infra/pgadmin/servers.json:/pgadmin4/servers.json:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - app_storage:/app/storage
+    ports:
+      - "${APP_HOST_PORT:-3002}:3002"
     networks:
       - career_path_net
 
 volumes:
-  postgres_data:
-  pgadmin_data:
+  app_storage:
 
 networks:
   career_path_net:
