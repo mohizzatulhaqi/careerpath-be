@@ -11,6 +11,7 @@ REST API untuk aplikasi Career Path Recommendation — Rust + Axum + PostgreSQL.
 | Database | PostgreSQL via sqlx 0.8 |
 | Auth | JWT (jsonwebtoken) + Argon2 |
 | Validation | validator |
+| Sanitization | ammonia (HTML strip), percent-encoding (RFC 5987 filenames) |
 | Error handling | thiserror + anyhow |
 | Logging | tracing + tracing-subscriber |
 
@@ -50,7 +51,7 @@ Variabel yang diperlukan:
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/career_path
 JWT_SECRET=<string acak panjang ≥ 32 karakter>
 JWT_EXPIRES_IN=86400       # detik (default: 24 jam)
-SERVER_PORT=3000
+SERVER_PORT=3002
 RUST_LOG=info,career_path_be=debug
 ```
 
@@ -72,11 +73,11 @@ psql "$DATABASE_URL" -f migrations/20240101000000_create_users.sql
 cargo run
 ```
 
-Server berjalan di `http://localhost:3000`.
+Server berjalan di `http://localhost:3002`.
 
 ---
 
-## ⚠️ Default Admin Credentials
+##  Default Admin Credentials
 
 Setelah menjalankan migration, akan ada satu akun admin seeder:
 
@@ -87,7 +88,6 @@ Setelah menjalankan migration, akan ada satu akun admin seeder:
 | UUID | `00000000-0000-0000-0000-000000000001` |
 
 > **WAJIB GANTI PASSWORD SETELAH FIRST LOGIN.**  
-> Hash ini adalah argon2id publik yang diketahui. Biarkan password ini aktif di production = risiko keamanan kritis.
 
 Untuk generate hash password baru:
 ```bash
@@ -220,12 +220,90 @@ Semua endpoint di bawah memerlukan Bearer token dengan role `admin`. Prinsip:
 
 ---
 
+### Admin — Submission Review (role: admin)
+
+Admin dapat melihat antrian submission, mengunduh file ZIP, menyetujui atau menolak dengan catatan, dan mencabut keputusan sebelumnya. Setiap tindakan dicatat ke `submission_review_history` **dan** `admin_audit_logs` dalam satu transaksi.
+
+**State machine yang diizinkan:**
+
+```
+pending_review → approved  ✓
+pending_review → rejected  ✓
+approved       → rejected  ✓  (revoke)
+rejected       → approved  ✓  (revoke)
+any            → pending   ✗  (403 INVALID_TRANSITION)
+approved       → approved  ✗  (409 ALREADY_APPROVED)
+rejected       → rejected  ✗  (409 ALREADY_REJECTED)
+```
+
+| Method | Path | Deskripsi |
+|---|---|---|
+| `GET` | `/api/admin/submissions` | Daftar submission (filter + paginasi + ringkasan status) |
+| `GET` | `/api/admin/submissions/:id` | Detail submission lengkap + riwayat review |
+| `GET` | `/api/admin/submissions/:id/download` | Download file ZIP submission (audit log otomatis) |
+| `POST` | `/api/admin/submissions/:id/approve` | Setujui submission |
+| `POST` | `/api/admin/submissions/:id/reject` | Tolak submission |
+| `GET` | `/api/admin/submissions/queue/stats` | Statistik antrian (pending, oldest, avg processing time) |
+
+**Query params `GET /api/admin/submissions`:**
+
+| Param | Type | Deskripsi |
+|---|---|---|
+| `status` | string | `pending_review` / `approved` / `rejected` |
+| `project_id` | UUID | Filter per project |
+| `user_id` | UUID | Filter per user |
+| `role_id` | UUID | Filter per career role |
+| `from_date` | date | Filter `submitted_at >=` (format: `YYYY-MM-DD`) |
+| `to_date` | date | Filter `submitted_at <=` |
+| `page` | int | Halaman (default: 1) |
+| `per_page` | int | Per halaman (default: 20, max: 100) |
+| `sort` | string | `submitted_at` (default) / `reviewed_at` |
+
+**Request body `POST .../approve`:**
+
+```json
+{ "reviewer_notes": "Submission sudah memenuhi semua kriteria." }
+```
+
+> Minimum 10 karakter untuk approve, 20 karakter untuk reject. Semua HTML di-strip otomatis (ammonia).
+
+**Response `POST .../approve` / `.../reject`:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "submission_id": "...",
+    "status": "approved",
+    "reviewed_at": "2026-05-23T11:41:19Z",
+    "reviewer_notes": "Submission sudah memenuhi semua kriteria.",
+    "user": { "id": "...", "name": "Budi", "email": "budi@example.com" },
+    "project": { "id": "...", "title": "Capstone Project: Web App Lengkap" }
+  }
+}
+```
+
+**Response `GET .../queue/stats`:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "pending_count": 5,
+    "oldest_pending_hours": 12.4,
+    "avg_processing_hours": 3.2
+  }
+}
+```
+
+---
+
 ## Test dengan curl
 
 ### Register
 
 ```bash
-curl -s -X POST http://localhost:3000/api/auth/register \
+curl -s -X POST http://localhost:3002/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","password":"secret123","name":"Budi"}' | jq
 ```
@@ -244,7 +322,7 @@ Response `201`:
 ### Login
 
 ```bash
-curl -s -X POST http://localhost:3000/api/auth/login \
+curl -s -X POST http://localhost:3002/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","password":"secret123"}' | jq
 ```
@@ -254,7 +332,7 @@ curl -s -X POST http://localhost:3000/api/auth/login \
 ```bash
 TOKEN="<token dari login>"
 
-curl -s http://localhost:3000/api/auth/me \
+curl -s http://localhost:2/api/auth/me \
   -H "Authorization: Bearer $TOKEN" | jq
 ```
 
@@ -270,49 +348,101 @@ curl -s http://localhost:3000/api/auth/me \
 }
 ```
 
+### Admin — Submission review lifecycle (curl)
+
+```bash
+ADMIN_TOKEN="<token admin>"
+
+# 1. Lihat antrian pending
+curl -s "http://localhost:3002/api/admin/submissions?status=pending_review" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" | jq '.data.summary, .data.submissions[0].id'
+
+# 2. Statistik antrian
+curl -s "http://localhost:3002/api/admin/submissions/queue/stats" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" | jq
+
+# 3. Detail submission
+SUB_ID="<submission_id dari langkah 1>"
+curl -s "http://localhost:3002/api/admin/submissions/$SUB_ID" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" | jq '.data | {status, user: .user.name, history: .review_history}'
+
+# 4. Download file ZIP
+curl -s "http://localhost:3002/api/admin/submissions/$SUB_ID/download" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -o submission.zip
+# Content-Disposition header berisi nama file asli (RFC 5987 UTF-8 encoded)
+
+# 5. Setujui
+curl -s -X POST "http://localhost:3002/api/admin/submissions/$SUB_ID/approve" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reviewer_notes":"Submission sudah memenuhi semua kriteria. Kerja bagus!"}' | jq
+
+# 6. Approve lagi → 409 ALREADY_APPROVED
+curl -s -X POST "http://localhost:3002/api/admin/submissions/$SUB_ID/approve" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reviewer_notes":"Coba approve lagi"}' | jq
+# → {"success":false,"error":{"code":"ALREADY_APPROVED","message":"..."}}
+
+# 7. Cabut persetujuan (revoke) → reject setelah approved
+curl -s -X POST "http://localhost:3002/api/admin/submissions/$SUB_ID/reject" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reviewer_notes":"Ditemukan masalah — mohon perbaiki dan submit ulang project kamu."}' | jq
+
+# 8. User bisa cek status via dashboard
+USER_TOKEN="<token user>"
+curl -s "http://localhost:3002/api/dashboard" \
+  -H "Authorization: Bearer $USER_TOKEN" | jq '.data.project_submission'
+# next_action: "SUBMIT_PROJECT" (rejected) atau "ALL_DONE" (approved)
+```
+
+---
+
 ### Admin — Module lifecycle (curl)
 
 ```bash
 ADMIN_TOKEN="<token admin>"
 
 # 1. Buat career role dulu (butuh role sebelum buat modul)
-ROLE_ID=$(curl -s -X POST http://localhost:3000/api/admin/roles \
+ROLE_ID=$(curl -s -X POST http://localhost:3002/api/admin/roles \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"code":"backend_dev","name":"Backend Developer","description":"Jalur karir backend"}' \
   | jq -r '.data.id')
 
 # 2. Daftar modul
-curl -s "http://localhost:3000/api/admin/modules?role_id=$ROLE_ID" \
+curl -s "http://localhost:3002/api/admin/modules?role_id=$ROLE_ID" \
   -H "Authorization: Bearer $ADMIN_TOKEN" | jq
 
 # 3. Buat modul baru
-MODULE_ID=$(curl -s -X POST http://localhost:3000/api/admin/modules \
+MODULE_ID=$(curl -s -X POST http://localhost:3002/api/admin/modules \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"role_id\":\"$ROLE_ID\",\"title\":\"Dasar HTTP\",\"description\":\"HTTP fundamentals\"}" \
   | jq -r '.data.id')
 
 # 4. Update modul
-curl -s -X PATCH "http://localhost:3000/api/admin/modules/$MODULE_ID" \
+curl -s -X PATCH "http://localhost:3002/api/admin/modules/$MODULE_ID" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title":"Dasar HTTP & REST","description":"HTTP + REST API fundamentals"}' | jq
 
 # 5. Unpublish (soft delete) — tidak perlu force jika belum ada user progress
-curl -s -X DELETE "http://localhost:3000/api/admin/modules/$MODULE_ID" \
+curl -s -X DELETE "http://localhost:3002/api/admin/modules/$MODULE_ID" \
   -H "Authorization: Bearer $ADMIN_TOKEN" | jq
 # → 200 {message: "Module unpublished"}
 
 # 5b. Jika ada user yang sudah pernah quiz di modul ini, server akan menolak:
 # → 409 {code: "REQUIRES_FORCE", affected_count: 5}
 # Gunakan ?force=true untuk hard delete:
-curl -s -X DELETE "http://localhost:3000/api/admin/modules/$MODULE_ID?force=true" \
+curl -s -X DELETE "http://localhost:3002/api/admin/modules/$MODULE_ID?force=true" \
   -H "Authorization: Bearer $ADMIN_TOKEN" | jq
 # → 200 {message: "Module deleted permanently"}
 
 # 6. Restore (publish kembali) — jika belum dihapus permanen
-curl -s -X POST "http://localhost:3000/api/admin/modules/$MODULE_ID/restore" \
+curl -s -X POST "http://localhost:3002/api/admin/modules/$MODULE_ID/restore" \
   -H "Authorization: Bearer $ADMIN_TOKEN" | jq
 
 # 7. Force flag — response 409 REQUIRES_FORCE example:
@@ -345,6 +475,7 @@ src/
 │   ├── jwt.rs           # create/verify token
 │   ├── password.rs      # argon2 hash/verify
 │   ├── pagination.rs    # PaginationQuery + PaginatedResponse
+│   ├── sanitization.rs  # sanitize_plain_text (ammonia HTML strip + length check)
 │   └── response.rs      # ApiResponse<T> wrapper
 ├── db/pool.rs           # PgPool setup
 └── features/
@@ -357,7 +488,8 @@ src/
     └── admin/
         ├── audit/       # audit trail (entity · dto · repository · service)
         ├── user/        # CRUD users · deactivate · activate · audit logs
-        └── content/     # Content CRUD (role · module · submaterial · mini/final/pre quiz · project)
+        ├── content/     # Content CRUD (role · module · submaterial · mini/final/pre quiz · project)
+        └── submission/  # Review queue · download · approve/reject · state machine · audit dual-write
 ```
 
 Setiap feature mengikuti pola:
