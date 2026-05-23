@@ -1,10 +1,11 @@
+use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use uuid::Uuid;
 
 // ── Top-level response ─────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct DashboardResponse {
     pub user: UserSummaryDto,
     pub career_path: CareerPathSummaryDto,
@@ -16,7 +17,7 @@ pub struct DashboardResponse {
 
 // ── Section: user ──────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct UserSummaryDto {
     pub id: Uuid,
     pub name: String,
@@ -26,7 +27,7 @@ pub struct UserSummaryDto {
 
 // ── Section: career_path ───────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct CareerPathSummaryDto {
     pub has_taken_quiz: bool,
     pub role: Option<RoleDto>,
@@ -35,7 +36,7 @@ pub struct CareerPathSummaryDto {
     pub last_quiz_attempt_id: Option<Uuid>,
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, ToSchema)]
 pub struct RoleDto {
     pub id: Uuid,
     pub code: String,
@@ -45,7 +46,7 @@ pub struct RoleDto {
 
 // ── Section: learning_progress ─────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct LearningProgressSummaryDto {
     pub overall_percentage: f64,
     pub total_modules: i64,
@@ -68,7 +69,7 @@ impl Default for LearningProgressSummaryDto {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct CurrentModuleDto {
     pub id: Uuid,
     pub title: String,
@@ -78,7 +79,7 @@ pub struct CurrentModuleDto {
     pub current_submaterial: Option<CurrentSubmaterialDto>,
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, ToSchema)]
 pub struct CurrentSubmaterialDto {
     pub id: Uuid,
     pub title: String,
@@ -87,7 +88,7 @@ pub struct CurrentSubmaterialDto {
 
 // ── Section: final_project ─────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct FinalProjectSummaryDto {
     pub is_available: bool,
     pub project: Option<ProjectBriefDto>,
@@ -102,7 +103,7 @@ impl Default for FinalProjectSummaryDto {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ProjectBriefDto {
     pub id: Uuid,
     pub title: String,
@@ -110,7 +111,7 @@ pub struct ProjectBriefDto {
 
 // ── Section: next_action ───────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct NextActionDto {
     /// TAKE_QUIZ | CONTINUE_LEARNING | TAKE_FINAL_QUIZ | SUBMIT_PROJECT | WAIT_REVIEW | ALL_DONE
     pub code: String,
@@ -121,7 +122,7 @@ pub struct NextActionDto {
 
 // ── Section: recent_activities ─────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ActivityDto {
     /// submaterial_completed | final_quiz_passed | final_quiz_failed | project_submitted
     pub kind: String,
@@ -132,14 +133,14 @@ pub struct ActivityDto {
 
 // ── Learning summary response (GET /dashboard/learning-summary) ────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct LearningSummaryResponse {
     pub role: RoleDto,
     pub overall_percentage: f64,
     pub modules: Vec<LearningSummaryModuleDto>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct LearningSummaryModuleDto {
     pub id: Uuid,
     pub title: String,
@@ -155,7 +156,7 @@ pub struct LearningSummaryModuleDto {
 
 // ── Activity log response (GET /dashboard/activity) ───────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ActivityLogResponse {
     pub activities: Vec<ActivityDto>,
     pub has_more: bool,

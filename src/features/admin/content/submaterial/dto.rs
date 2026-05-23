@@ -1,3 +1,4 @@
+use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -5,7 +6,7 @@ use validator::Validate;
 
 use crate::features::admin::audit::dto::PaginationDto;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AdminSubmaterialDto {
     pub id: Uuid,
     pub module_id: Uuid,
@@ -20,13 +21,13 @@ pub struct AdminSubmaterialDto {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AdminSubmaterialListResponse {
     pub submaterials: Vec<AdminSubmaterialDto>,
     pub pagination: PaginationDto,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, ToSchema)]
 pub struct AdminSubmaterialFilter {
     pub module_id: Option<Uuid>,
     pub is_published: Option<bool>,
@@ -35,7 +36,7 @@ pub struct AdminSubmaterialFilter {
     pub per_page: Option<i64>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateSubmaterialRequest {
     pub module_id: Uuid,
     #[validate(length(min = 1, max = 255))]
@@ -45,7 +46,7 @@ pub struct CreateSubmaterialRequest {
     pub estimated_minutes: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct UpdateSubmaterialRequest {
     #[validate(length(min = 1, max = 255))]
     pub title: Option<String>,

@@ -1,9 +1,10 @@
+use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AdminModuleQuizOptionDto {
     pub id: Uuid,
     pub text: String,
@@ -11,7 +12,7 @@ pub struct AdminModuleQuizOptionDto {
     pub order_index: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, ToSchema)]
 pub struct ModuleQuizOptionInput {
     #[validate(length(min = 1))]
     pub text: String,
@@ -19,7 +20,7 @@ pub struct ModuleQuizOptionInput {
     pub order_index: i32,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AdminModuleQuizQuestionDto {
     pub id: Uuid,
     pub module_id: Uuid,
@@ -30,7 +31,7 @@ pub struct AdminModuleQuizQuestionDto {
     pub options: Vec<AdminModuleQuizOptionDto>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateModuleQuizQuestionRequest {
     pub module_id: Uuid,
     #[validate(length(min = 1))]
@@ -40,14 +41,14 @@ pub struct CreateModuleQuizQuestionRequest {
     pub options: Vec<ModuleQuizOptionInput>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct UpdateModuleQuizQuestionRequest {
     #[validate(length(min = 1))]
     pub question_text: Option<String>,
     pub order_index: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct ReplaceModuleQuizOptionsRequest {
     #[validate(length(min = 2))]
     pub options: Vec<ModuleQuizOptionInput>,

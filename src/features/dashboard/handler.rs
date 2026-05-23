@@ -15,6 +15,16 @@ use axum::{
 use serde::Deserialize;
 use std::sync::Arc;
 
+#[utoipa::path(
+    get,
+    path = "/api/dashboard",
+    tag = "Dashboard",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Full dashboard data", body = crate::features::dashboard::dto::DashboardResponse),
+        (status = 401, description = "Unauthorized"),
+    )
+)]
 /// GET /api/dashboard
 pub async fn get_dashboard(
     State(state): State<Arc<AppState>>,
@@ -24,6 +34,17 @@ pub async fn get_dashboard(
     Ok(ApiResponse::ok(data))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/dashboard/learning-summary",
+    tag = "Dashboard",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Learning summary", body = crate::features::dashboard::dto::LearningSummaryResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Quiz not completed"),
+    )
+)]
 /// GET /api/dashboard/learning-summary
 pub async fn get_learning_summary(
     State(state): State<Arc<AppState>>,
@@ -57,6 +78,16 @@ pub struct ActivityQuery {
     pub limit: Option<i64>,
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/dashboard/activity",
+    tag = "Dashboard",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Activity log", body = crate::features::dashboard::dto::ActivityLogResponse),
+        (status = 401, description = "Unauthorized"),
+    )
+)]
 /// GET /api/dashboard/activity?limit=20
 pub async fn get_activity_log(
     State(state): State<Arc<AppState>>,

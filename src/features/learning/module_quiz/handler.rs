@@ -13,6 +13,20 @@ use axum::{
 use std::sync::Arc;
 use uuid::Uuid;
 
+#[utoipa::path(
+    get,
+    path = "/api/learning/modules/{id}/quiz",
+    tag = "Learning - Final Quiz",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Module ID"),
+    ),
+    responses(
+        (status = 200, description = "Final quiz questions", body = crate::features::learning::module_quiz::dto::FinalQuizResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// GET /api/learning/modules/:id/quiz
 pub async fn get_final_quiz(
     State(state): State<Arc<AppState>>,
@@ -25,6 +39,21 @@ pub async fn get_final_quiz(
     Ok(ApiResponse::ok(data))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/learning/modules/{id}/quiz/submit",
+    tag = "Learning - Final Quiz",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Module ID"),
+    ),
+    request_body = SubmitFinalQuizRequest,
+    responses(
+        (status = 200, description = "Final quiz submitted", body = crate::features::learning::module_quiz::dto::FinalQuizSubmitResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// POST /api/learning/modules/:id/quiz/submit
 pub async fn submit_final_quiz(
     State(state): State<Arc<AppState>>,
@@ -38,6 +67,20 @@ pub async fn submit_final_quiz(
     Ok(ApiResponse::ok(data))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/learning/modules/{id}/quiz/history",
+    tag = "Learning - Final Quiz",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Module ID"),
+    ),
+    responses(
+        (status = 200, description = "Final quiz attempt history", body = crate::features::learning::module_quiz::dto::FinalQuizHistoryResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// GET /api/learning/modules/:id/quiz/history
 pub async fn get_final_quiz_history(
     State(state): State<Arc<AppState>>,

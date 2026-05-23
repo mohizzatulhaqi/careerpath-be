@@ -24,6 +24,17 @@ use crate::{
 
 // ── GET /api/admin/users ──────────────────────────────────────────────────────
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/users",
+    tag = "Admin - Users",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "List of users", body = crate::features::admin::user::dto::UserListResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn list_users(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -41,6 +52,21 @@ pub async fn list_users(
 
 // ── GET /api/admin/users/:id ──────────────────────────────────────────────────
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/users/{id}",
+    tag = "Admin - Users",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "User ID"),
+    ),
+    responses(
+        (status = 200, description = "User detail", body = crate::features::admin::user::dto::UserDetailDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn get_user(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -58,6 +84,22 @@ pub async fn get_user(
 
 // ── PATCH /api/admin/users/:id ────────────────────────────────────────────────
 
+#[utoipa::path(
+    patch,
+    path = "/api/admin/users/{id}",
+    tag = "Admin - Users",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "User ID"),
+    ),
+    request_body = UpdateUserRequest,
+    responses(
+        (status = 200, description = "User updated"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn update_user(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -78,6 +120,22 @@ pub async fn update_user(
 
 // ── POST /api/admin/users/:id/deactivate ─────────────────────────────────────
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/users/{id}/deactivate",
+    tag = "Admin - Users",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "User ID"),
+    ),
+    request_body = DeactivateRequest,
+    responses(
+        (status = 200, description = "User deactivated"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn deactivate_user(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -101,6 +159,22 @@ pub async fn deactivate_user(
 
 // ── POST /api/admin/users/:id/activate ───────────────────────────────────────
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/users/{id}/activate",
+    tag = "Admin - Users",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "User ID"),
+    ),
+    request_body = ActivateRequest,
+    responses(
+        (status = 200, description = "User activated"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn activate_user(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -119,6 +193,20 @@ pub async fn activate_user(
 
 // ── GET /api/admin/users/:id/audit-logs ──────────────────────────────────────
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/users/{id}/audit-logs",
+    tag = "Admin - Audit",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "User ID"),
+    ),
+    responses(
+        (status = 200, description = "User audit logs", body = crate::features::admin::audit::dto::AuditLogPageDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn get_user_audit_logs(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -140,6 +228,17 @@ pub async fn get_user_audit_logs(
 
 // ── GET /api/admin/audit-logs ─────────────────────────────────────────────────
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/audit-logs",
+    tag = "Admin - Audit",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "All audit logs", body = crate::features::admin::audit::dto::AuditLogPageDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn get_audit_logs(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,

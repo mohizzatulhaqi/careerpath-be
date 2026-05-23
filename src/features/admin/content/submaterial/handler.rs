@@ -25,6 +25,17 @@ pub struct ForceQuery {
     pub force: Option<bool>,
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/submaterials",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "List of submaterials", body = crate::features::admin::content::submaterial::dto::AdminSubmaterialListResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn list_submaterials(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -34,6 +45,21 @@ pub async fn list_submaterials(
     Ok(Json(json!({ "success": true, "data": result })))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/submaterials/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Submaterial ID"),
+    ),
+    responses(
+        (status = 200, description = "Submaterial detail", body = crate::features::admin::content::submaterial::dto::AdminSubmaterialDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn get_submaterial(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -43,6 +69,18 @@ pub async fn get_submaterial(
     Ok(Json(json!({ "success": true, "data": result })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/submaterials",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    request_body = CreateSubmaterialRequest,
+    responses(
+        (status = 201, description = "Submaterial created"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn create_submaterial(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -62,6 +100,22 @@ pub async fn create_submaterial(
     ))
 }
 
+#[utoipa::path(
+    patch,
+    path = "/api/admin/submaterials/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Submaterial ID"),
+    ),
+    request_body = UpdateSubmaterialRequest,
+    responses(
+        (status = 200, description = "Submaterial updated"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn update_submaterial(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -73,6 +127,21 @@ pub async fn update_submaterial(
     Ok(Json(json!({ "success": true, "message": "Submaterial updated" })))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/api/admin/submaterials/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Submaterial ID"),
+    ),
+    responses(
+        (status = 200, description = "Submaterial deleted or unpublished"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn delete_submaterial(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -93,6 +162,21 @@ pub async fn delete_submaterial(
     }
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/submaterials/{id}/restore",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Submaterial ID"),
+    ),
+    responses(
+        (status = 200, description = "Submaterial restored"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn restore_submaterial(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,

@@ -23,6 +23,20 @@ use crate::{
 #[derive(Debug, Deserialize, Default)]
 pub struct ForceQuery { pub force: Option<bool> }
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/modules/{module_id}/final-quiz",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("module_id" = Uuid, Path, description = "Module ID"),
+    ),
+    responses(
+        (status = 200, description = "List of final quiz questions", body = Vec<crate::features::admin::content::module_quiz::dto::AdminModuleQuizQuestionDto>),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 /// GET /api/admin/modules/:module_id/final-quiz
 pub async fn list_questions(
     _admin: AdminUser,
@@ -33,6 +47,18 @@ pub async fn list_questions(
     Ok(Json(json!({ "success": true, "data": result })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/module-quiz-questions",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    request_body = CreateModuleQuizQuestionRequest,
+    responses(
+        (status = 201, description = "Question created"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 /// POST /api/admin/module-quiz-questions
 pub async fn create_question(
     admin: AdminUser,
@@ -44,6 +70,22 @@ pub async fn create_question(
     Ok((StatusCode::CREATED, Json(json!({ "success": true, "data": { "id": id } }))))
 }
 
+#[utoipa::path(
+    patch,
+    path = "/api/admin/module-quiz-questions/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Question ID"),
+    ),
+    request_body = UpdateModuleQuizQuestionRequest,
+    responses(
+        (status = 200, description = "Question updated"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// PATCH /api/admin/module-quiz-questions/:id
 pub async fn update_question(
     admin: AdminUser,
@@ -55,6 +97,22 @@ pub async fn update_question(
     Ok(Json(json!({ "success": true, "message": "Question updated" })))
 }
 
+#[utoipa::path(
+    patch,
+    path = "/api/admin/module-quiz-questions/{id}/options",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Question ID"),
+    ),
+    request_body = ReplaceModuleQuizOptionsRequest,
+    responses(
+        (status = 200, description = "Options replaced"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// PATCH /api/admin/module-quiz-questions/:id/options
 pub async fn replace_options(
     admin: AdminUser,
@@ -70,6 +128,21 @@ pub async fn replace_options(
     Ok(Json(json!({ "success": true, "message": "Options replaced" })))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/api/admin/module-quiz-questions/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Question ID"),
+    ),
+    responses(
+        (status = 200, description = "Question deleted"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// DELETE /api/admin/module-quiz-questions/:id
 pub async fn delete_question(
     admin: AdminUser,

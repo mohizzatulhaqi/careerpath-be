@@ -15,6 +15,17 @@ use crate::{error::AppError, middleware::role_guard::AdminUser, state::AppState}
 
 // ── GET /api/admin/submissions ────────────────────────────────────────────────
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/submissions",
+    tag = "Admin - Submissions",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "List of submissions", body = crate::features::admin::submission::dto::SubmissionListResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn list_submissions(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -27,6 +38,21 @@ pub async fn list_submissions(
 
 // ── GET /api/admin/submissions/:id ────────────────────────────────────────────
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/submissions/{id}",
+    tag = "Admin - Submissions",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Submission ID"),
+    ),
+    responses(
+        (status = 200, description = "Submission detail", body = crate::features::admin::submission::dto::SubmissionDetailDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn get_submission(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -39,6 +65,21 @@ pub async fn get_submission(
 
 // ── GET /api/admin/submissions/:id/download ───────────────────────────────────
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/submissions/{id}/download",
+    tag = "Admin - Submissions",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Submission ID"),
+    ),
+    responses(
+        (status = 200, description = "Download submission file"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn download_submission(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -82,6 +123,22 @@ pub async fn download_submission(
 
 // ── POST /api/admin/submissions/:id/approve ───────────────────────────────────
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/submissions/{id}/approve",
+    tag = "Admin - Submissions",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Submission ID"),
+    ),
+    request_body = ReviewRequest,
+    responses(
+        (status = 200, description = "Submission approved", body = crate::features::admin::submission::dto::ReviewResultDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn approve_submission(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -98,6 +155,22 @@ pub async fn approve_submission(
 
 // ── POST /api/admin/submissions/:id/reject ────────────────────────────────────
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/submissions/{id}/reject",
+    tag = "Admin - Submissions",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Submission ID"),
+    ),
+    request_body = ReviewRequest,
+    responses(
+        (status = 200, description = "Submission rejected", body = crate::features::admin::submission::dto::ReviewResultDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn reject_submission(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -114,6 +187,17 @@ pub async fn reject_submission(
 
 // ── GET /api/admin/submissions/queue/stats ─────────────────────────────────────
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/submissions/queue/stats",
+    tag = "Admin - Submissions",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Queue statistics", body = crate::features::admin::submission::dto::QueueStatsDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn queue_stats(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,

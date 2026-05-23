@@ -1,30 +1,31 @@
+use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 // ── Nested DTOs ───────────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct UserBriefDto {
     pub id: Uuid,
     pub name: String,
     pub email: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct RoleBriefDto {
     pub code: String,
     pub name: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ProjectBriefDto {
     pub id: Uuid,
     pub title: String,
     pub role: RoleBriefDto,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct FileBriefDto {
     pub original_name: String,
     pub size_bytes: i64,
@@ -32,7 +33,7 @@ pub struct FileBriefDto {
     pub download_url: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ReviewerBriefDto {
     pub id: Uuid,
     pub name: String,
@@ -40,7 +41,7 @@ pub struct ReviewerBriefDto {
 
 // ── List response ─────────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct SubmissionSummaryDto {
     pub id: Uuid,
     pub status: String,
@@ -55,14 +56,14 @@ pub struct SubmissionSummaryDto {
     pub previous_attempts_count: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct QueueSummaryDto {
     pub pending_count: i64,
     pub approved_count: i64,
     pub rejected_count: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct SubmissionListResponse {
     pub submissions: Vec<SubmissionSummaryDto>,
     pub pagination: crate::features::admin::audit::dto::PaginationDto,
@@ -71,7 +72,7 @@ pub struct SubmissionListResponse {
 
 // ── Filter ────────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, ToSchema)]
 pub struct SubmissionFilter {
     /// "pending_review" | "approved" | "rejected" | "all" (default: "pending_review")
     pub status: Option<String>,
@@ -88,7 +89,7 @@ pub struct SubmissionFilter {
 
 // ── Detail response ───────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct UserDetailForReviewDto {
     pub id: Uuid,
     pub name: String,
@@ -98,7 +99,7 @@ pub struct UserDetailForReviewDto {
     pub modules_total: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ProjectDetailForReviewDto {
     pub id: Uuid,
     pub title: String,
@@ -107,14 +108,14 @@ pub struct ProjectDetailForReviewDto {
     pub estimated_hours: i32,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct CurrentReviewDto {
     pub reviewer: Option<ReviewerBriefDto>,
     pub reviewed_at: Option<DateTime<Utc>>,
     pub reviewer_notes: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ReviewHistoryEntryDto {
     pub id: Uuid,
     pub old_status: Option<String>,
@@ -124,14 +125,14 @@ pub struct ReviewHistoryEntryDto {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct SubmissionHistoryItemDto {
     pub id: Uuid,
     pub status: String,
     pub submitted_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct SubmissionDetailDto {
     pub id: Uuid,
     pub status: String,
@@ -147,7 +148,7 @@ pub struct SubmissionDetailDto {
 
 // ── Review result (approve/reject response) ───────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ReviewResultDto {
     pub submission_id: Uuid,
     pub status: String,
@@ -159,13 +160,13 @@ pub struct ReviewResultDto {
 
 // ── Queue stats ───────────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct RolePendingCountDto {
     pub role: RoleBriefDto,
     pub pending_count: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct QueueStatsDto {
     pub pending_count: i64,
     pub oldest_pending_submitted_at: Option<DateTime<Utc>>,
@@ -178,7 +179,7 @@ pub struct QueueStatsDto {
 
 // ── Request bodies ────────────────────────────────────────────────────────────
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct ReviewRequest {
     pub reviewer_notes: String,
 }

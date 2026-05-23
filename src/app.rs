@@ -1,7 +1,9 @@
-use crate::{features, state::AppState};
+use crate::{features, openapi, state::AppState};
 use axum::{http::Method, Router};
 use std::sync::Arc;
 use tower_http::{cors::{Any, CorsLayer}, trace::TraceLayer};
+use utoipa_scalar::{Scalar, Servable as ScalarServable};
+use utoipa_swagger_ui::SwaggerUi;
 
 pub fn create_app(state: Arc<AppState>) -> Router {
     let cors = CorsLayer::new()
@@ -16,8 +18,17 @@ pub fn create_app(state: Arc<AppState>) -> Router {
         ])
         .allow_headers(Any);
 
+    let openapi_spec = openapi::build();
+
     Router::new()
         .nest("/api", api_router())
+        // Scalar UI at /docs
+        .merge(Scalar::with_url("/docs", openapi_spec.clone()))
+        // Swagger UI at /swagger + raw JSON at /api-docs/openapi.json
+        .merge(
+            SwaggerUi::new("/swagger")
+                .url("/api-docs/openapi.json", openapi_spec),
+        )
         .layer(TraceLayer::new_for_http())
         .layer(cors)
         .with_state(state)

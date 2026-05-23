@@ -1,3 +1,4 @@
+use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -5,7 +6,7 @@ use validator::Validate;
 
 use crate::features::admin::audit::dto::PaginationDto;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AdminProjectDto {
     pub id: Uuid,
     pub role_id: Uuid,
@@ -19,13 +20,13 @@ pub struct AdminProjectDto {
     pub submission_count: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AdminProjectListResponse {
     pub projects: Vec<AdminProjectDto>,
     pub pagination: PaginationDto,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, ToSchema)]
 pub struct AdminProjectFilter {
     pub role_id: Option<Uuid>,
     pub is_published: Option<bool>,
@@ -33,7 +34,7 @@ pub struct AdminProjectFilter {
     pub per_page: Option<i64>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateProjectRequest {
     pub role_id: Uuid,
     #[validate(length(min = 1, max = 255))]
@@ -44,7 +45,7 @@ pub struct CreateProjectRequest {
     pub estimated_hours: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct UpdateProjectRequest {
     #[validate(length(min = 1, max = 255))]
     pub title: Option<String>,

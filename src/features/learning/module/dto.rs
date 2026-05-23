@@ -1,17 +1,18 @@
+use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use uuid::Uuid;
 
 // ── Responses ─────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, ToSchema)]
 pub struct RoleInfo {
     pub id: Uuid,
     pub code: String,
     pub name: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ModuleListItem {
     pub id: Uuid,
     pub title: String,
@@ -26,13 +27,13 @@ pub struct ModuleListItem {
     pub final_quiz_passed: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ModuleListResponse {
     pub role: RoleInfo,
     pub modules: Vec<ModuleListItem>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct SubmaterialInModule {
     pub id: Uuid,
     pub title: String,
@@ -43,7 +44,7 @@ pub struct SubmaterialInModule {
     pub completed_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ModuleDetailResponse {
     pub id: Uuid,
     pub title: String,

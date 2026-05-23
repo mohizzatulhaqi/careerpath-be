@@ -1,3 +1,4 @@
+use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -5,7 +6,7 @@ use validator::Validate;
 
 // ── Option DTOs ───────────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AdminQuizOptionDto {
     pub id: Uuid,
     pub text: String,
@@ -13,7 +14,7 @@ pub struct AdminQuizOptionDto {
     pub order_index: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, ToSchema)]
 pub struct QuizOptionInput {
     #[validate(length(min = 1))]
     pub text: String,
@@ -23,7 +24,7 @@ pub struct QuizOptionInput {
 
 // ── Question DTOs ─────────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AdminSubQuizQuestionDto {
     pub id: Uuid,
     pub submaterial_id: Uuid,
@@ -34,7 +35,7 @@ pub struct AdminSubQuizQuestionDto {
     pub options: Vec<AdminQuizOptionDto>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateSubQuizQuestionRequest {
     pub submaterial_id: Uuid,
     #[validate(length(min = 1))]
@@ -44,14 +45,14 @@ pub struct CreateSubQuizQuestionRequest {
     pub options: Vec<QuizOptionInput>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct UpdateSubQuizQuestionRequest {
     #[validate(length(min = 1))]
     pub question_text: Option<String>,
     pub order_index: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct ReplaceOptionsRequest {
     #[validate(length(min = 2))]
     pub options: Vec<QuizOptionInput>,

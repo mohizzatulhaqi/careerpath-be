@@ -23,6 +23,17 @@ use crate::{
 #[derive(Debug, Deserialize, Default)]
 pub struct ForceQuery { pub force: Option<bool> }
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/pre-quiz-questions",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "List of pre-quiz questions", body = crate::features::admin::content::pre_quiz::dto::PreQuizListResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn list_questions(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -32,6 +43,21 @@ pub async fn list_questions(
     Ok(Json(json!({ "success": true, "data": result })))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/pre-quiz-questions/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Question ID"),
+    ),
+    responses(
+        (status = 200, description = "Pre-quiz question detail", body = crate::features::admin::content::pre_quiz::dto::PreQuizQuestionDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn get_question(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -41,6 +67,18 @@ pub async fn get_question(
     Ok(Json(json!({ "success": true, "data": result })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/pre-quiz-questions",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    request_body = CreatePreQuizQuestionRequest,
+    responses(
+        (status = 201, description = "Question created"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn create_question(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -51,6 +89,22 @@ pub async fn create_question(
     Ok((StatusCode::CREATED, Json(json!({ "success": true, "data": { "id": id } }))))
 }
 
+#[utoipa::path(
+    patch,
+    path = "/api/admin/pre-quiz-questions/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Question ID"),
+    ),
+    request_body = UpdatePreQuizQuestionRequest,
+    responses(
+        (status = 200, description = "Question updated"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn update_question(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -62,6 +116,22 @@ pub async fn update_question(
     Ok(Json(json!({ "success": true, "message": "Question updated" })))
 }
 
+#[utoipa::path(
+    patch,
+    path = "/api/admin/pre-quiz-questions/{id}/options",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Question ID"),
+    ),
+    request_body = ReplacePreQuizOptionsRequest,
+    responses(
+        (status = 200, description = "Options replaced"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn replace_options(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -76,6 +146,21 @@ pub async fn replace_options(
     Ok(Json(json!({ "success": true, "message": "Options replaced" })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/pre-quiz-questions/{id}/deactivate",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Question ID"),
+    ),
+    responses(
+        (status = 200, description = "Question deactivated"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn deactivate_question(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -85,6 +170,21 @@ pub async fn deactivate_question(
     Ok(Json(json!({ "success": true, "message": "Question deactivated" })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/pre-quiz-questions/{id}/restore",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Question ID"),
+    ),
+    responses(
+        (status = 200, description = "Question restored"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn restore_question(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,

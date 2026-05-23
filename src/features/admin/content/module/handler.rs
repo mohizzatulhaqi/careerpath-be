@@ -25,6 +25,17 @@ pub struct ForceQuery {
     pub force: Option<bool>,
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/modules",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "List of modules", body = crate::features::admin::content::module::dto::AdminModuleListResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn list_modules(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -34,6 +45,21 @@ pub async fn list_modules(
     Ok(Json(json!({ "success": true, "data": result })))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/modules/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Module ID"),
+    ),
+    responses(
+        (status = 200, description = "Module detail", body = crate::features::admin::content::module::dto::AdminModuleDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn get_module(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -43,6 +69,18 @@ pub async fn get_module(
     Ok(Json(json!({ "success": true, "data": result })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/modules",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    request_body = CreateModuleRequest,
+    responses(
+        (status = 201, description = "Module created"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn create_module(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -53,6 +91,22 @@ pub async fn create_module(
     Ok((StatusCode::CREATED, Json(json!({ "success": true, "data": { "id": id } }))))
 }
 
+#[utoipa::path(
+    patch,
+    path = "/api/admin/modules/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Module ID"),
+    ),
+    request_body = UpdateModuleRequest,
+    responses(
+        (status = 200, description = "Module updated"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn update_module(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -64,6 +118,21 @@ pub async fn update_module(
     Ok(Json(json!({ "success": true, "message": "Module updated" })))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/api/admin/modules/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Module ID"),
+    ),
+    responses(
+        (status = 200, description = "Module deleted or unpublished"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn delete_module(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -88,6 +157,21 @@ pub async fn delete_module(
     }
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/modules/{id}/restore",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Module ID"),
+    ),
+    responses(
+        (status = 200, description = "Module restored"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn restore_module(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,

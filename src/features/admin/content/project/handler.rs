@@ -19,6 +19,17 @@ use crate::{
     state::AppState,
 };
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/projects",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "List of projects", body = crate::features::admin::content::project::dto::AdminProjectListResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn list_projects(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -28,6 +39,21 @@ pub async fn list_projects(
     Ok(Json(json!({ "success": true, "data": result })))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/projects/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Project ID"),
+    ),
+    responses(
+        (status = 200, description = "Project detail", body = crate::features::admin::content::project::dto::AdminProjectDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn get_project(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -37,6 +63,18 @@ pub async fn get_project(
     Ok(Json(json!({ "success": true, "data": result })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/projects",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    request_body = CreateProjectRequest,
+    responses(
+        (status = 201, description = "Project created"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn create_project(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -47,6 +85,22 @@ pub async fn create_project(
     Ok((StatusCode::CREATED, Json(json!({ "success": true, "data": { "id": id } }))))
 }
 
+#[utoipa::path(
+    patch,
+    path = "/api/admin/projects/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Project ID"),
+    ),
+    request_body = UpdateProjectRequest,
+    responses(
+        (status = 200, description = "Project updated"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn update_project(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -58,6 +112,21 @@ pub async fn update_project(
     Ok(Json(json!({ "success": true, "message": "Project updated" })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/projects/{id}/unpublish",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Project ID"),
+    ),
+    responses(
+        (status = 200, description = "Project unpublished"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn unpublish_project(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -67,6 +136,21 @@ pub async fn unpublish_project(
     Ok(Json(json!({ "success": true, "message": "Project unpublished" })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/projects/{id}/restore",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Project ID"),
+    ),
+    responses(
+        (status = 200, description = "Project restored"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn restore_project(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,

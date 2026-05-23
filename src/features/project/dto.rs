@@ -1,23 +1,24 @@
+use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use uuid::Uuid;
 
 // ── Response DTOs ──────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct RoleDto {
     pub id: Uuid,
     pub code: String,
     pub name: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ModuleProgressDto {
     pub total: i64,
     pub completed: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct LatestSubmissionDto {
     pub id: Uuid,
     pub submission_notes: String,
@@ -29,7 +30,7 @@ pub struct LatestSubmissionDto {
     pub submitted_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ProjectDetailDto {
     pub id: Uuid,
     pub title: String,
@@ -41,13 +42,13 @@ pub struct ProjectDetailDto {
     pub latest_submission: Option<LatestSubmissionDto>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct MyProjectResponse {
     pub role: RoleDto,
     pub project: ProjectDetailDto,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct SubmitResponse {
     pub submission_id: Uuid,
     pub project_id: Uuid,
@@ -58,7 +59,7 @@ pub struct SubmitResponse {
     pub submission_notes: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct SubmissionHistoryItem {
     pub id: Uuid,
     pub file_original_name: String,

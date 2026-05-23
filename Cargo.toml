@@ -51,6 +51,10 @@ async-trait = "0.1"
 
 dotenvy = "0.15"
 
+utoipa = { version = "5", features = ["axum_extras", "uuid", "chrono", "preserve_order"] }
+utoipa-scalar = { version = "0.2", features = ["axum"] }
+utoipa-swagger-ui = { version = "8", features = ["axum"] }
+
 infer = "0.16"
 bytes = "1"
 ammonia = "4"

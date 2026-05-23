@@ -12,6 +12,20 @@ use axum::{
 use std::sync::Arc;
 use uuid::Uuid;
 
+#[utoipa::path(
+    get,
+    path = "/api/learning/submaterials/{id}",
+    tag = "Learning - Submaterials",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Submaterial ID"),
+    ),
+    responses(
+        (status = 200, description = "Submaterial detail", body = crate::features::learning::submaterial::dto::SubmaterialDetailResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// GET /api/learning/submaterials/:id
 pub async fn get_submaterial(
     State(state): State<Arc<AppState>>,
@@ -24,6 +38,18 @@ pub async fn get_submaterial(
     Ok(ApiResponse::ok(data))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/learning/submaterials/{id}/complete",
+    tag = "Learning - Submaterials",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Submaterial ID"),
+    ),
+    responses(
+        (status = 410, description = "Endpoint deprecated - use quiz submit instead"),
+    )
+)]
 /// POST /api/learning/submaterials/:id/complete — DEPRECATED (410 Gone)
 /// Use POST /api/learning/submaterials/:id/quiz/submit instead.
 pub async fn complete_submaterial(

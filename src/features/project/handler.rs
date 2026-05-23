@@ -23,6 +23,17 @@ fn learning_err_to_project(e: LearningError) -> ProjectError {
     ProjectError::NotFound
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/projects/me",
+    tag = "Project",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "My project info", body = crate::features::project::dto::MyProjectResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// GET /api/projects/me
 pub async fn get_my_project(
     State(state): State<Arc<AppState>>,
@@ -35,6 +46,20 @@ pub async fn get_my_project(
     Ok(ApiResponse::ok(data))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/projects/{id}",
+    tag = "Project",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Project ID"),
+    ),
+    responses(
+        (status = 200, description = "Project detail", body = crate::features::project::dto::ProjectDetailDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// GET /api/projects/:id
 pub async fn get_project(
     State(state): State<Arc<AppState>>,
@@ -45,6 +70,21 @@ pub async fn get_project(
     Ok(ApiResponse::ok(data))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/projects/{id}/submit",
+    tag = "Project",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Project ID"),
+    ),
+    request_body(content_type = "multipart/form-data", description = "ZIP file + submission notes"),
+    responses(
+        (status = 200, description = "Project submitted", body = crate::features::project::dto::SubmitResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// POST /api/projects/:id/submit  (multipart/form-data)
 pub async fn submit_project(
     State(state): State<Arc<AppState>>,
@@ -94,6 +134,20 @@ pub async fn submit_project(
     Ok(ApiResponse::ok(data))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/projects/{id}/submissions",
+    tag = "Project",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Project ID"),
+    ),
+    responses(
+        (status = 200, description = "Submission history", body = Vec<crate::features::project::dto::SubmissionHistoryItem>),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// GET /api/projects/:id/submissions
 pub async fn get_submissions(
     State(state): State<Arc<AppState>>,
@@ -104,6 +158,20 @@ pub async fn get_submissions(
     Ok(ApiResponse::ok(data))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/projects/submissions/{submission_id}/download",
+    tag = "Project",
+    security(("bearer_auth" = [])),
+    params(
+        ("submission_id" = Uuid, Path, description = "Submission ID"),
+    ),
+    responses(
+        (status = 200, description = "Download submission file"),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// GET /api/projects/submissions/:submission_id/download
 pub async fn download_submission(
     State(state): State<Arc<AppState>>,

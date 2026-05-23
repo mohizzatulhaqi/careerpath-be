@@ -1,3 +1,4 @@
+use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -5,7 +6,7 @@ use validator::Validate;
 
 // ── Requests ─────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct SubmitAnswerRequest {
     pub question_id: Uuid,
     pub option_id: Uuid,
@@ -13,14 +14,14 @@ pub struct SubmitAnswerRequest {
 
 // ── Responses ─────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct OptionDto {
     pub id: Uuid,
     pub option_text: String,
     pub order_index: i32,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct QuestionDto {
     pub id: Uuid,
     pub question_text: String,
@@ -28,21 +29,21 @@ pub struct QuestionDto {
     pub options: Vec<OptionDto>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AttemptCreatedResponse {
     pub attempt_id: Uuid,
     pub status: String,
     pub started_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AnswerSavedResponse {
     pub saved: bool,
     pub question_id: Uuid,
     pub option_id: Uuid,
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, ToSchema)]
 pub struct RoleDto {
     pub id: Uuid,
     pub code: String,
@@ -50,14 +51,14 @@ pub struct RoleDto {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct TopReason {
     pub question_text: String,
     pub option_text: String,
     pub contributed_weight: i32,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct RoleScoreDto {
     pub role_code: String,
     pub role_name: String,
@@ -65,7 +66,7 @@ pub struct RoleScoreDto {
     pub max_possible: i32,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct QuizResultResponse {
     pub attempt_id: Uuid,
     pub submitted_at: DateTime<Utc>,
@@ -75,7 +76,7 @@ pub struct QuizResultResponse {
     pub all_scores: Vec<RoleScoreDto>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct HistoryItem {
     pub attempt_id: Uuid,
     pub submitted_at: DateTime<Utc>,

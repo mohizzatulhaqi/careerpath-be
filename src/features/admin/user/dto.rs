@@ -1,3 +1,4 @@
+use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -5,7 +6,7 @@ use validator::Validate;
 
 // ── Stats snapshot attached to each user in the list ─────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct UserStatsDto {
     pub quiz_attempts: i64,
     pub modules_completed: i64,
@@ -14,7 +15,7 @@ pub struct UserStatsDto {
 
 // ── Summary row (list endpoint) ───────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct UserSummaryDto {
     pub id: Uuid,
     pub email: String,
@@ -29,7 +30,7 @@ pub struct UserSummaryDto {
 
 // ── History items for the detail endpoint ────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ModuleProgressDto {
     pub module_id: Uuid,
     pub module_title: String,
@@ -38,7 +39,7 @@ pub struct ModuleProgressDto {
     pub completed_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct QuizAttemptDto {
     pub quiz_id: Uuid,
     pub quiz_title: String,
@@ -47,7 +48,7 @@ pub struct QuizAttemptDto {
     pub attempted_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ProjectSubmissionDto {
     pub project_id: Uuid,
     pub project_title: String,
@@ -57,7 +58,7 @@ pub struct ProjectSubmissionDto {
 
 // ── Full detail (single user endpoint) ───────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct UserDetailDto {
     pub id: Uuid,
     pub email: String,
@@ -77,7 +78,7 @@ pub struct UserDetailDto {
 
 // ── Paginated list response ───────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct UserListResponse {
     pub users: Vec<UserSummaryDto>,
     pub pagination: crate::features::admin::audit::dto::PaginationDto,
@@ -85,7 +86,7 @@ pub struct UserListResponse {
 
 // ── Query parameters ──────────────────────────────────────────────────────────
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, ToSchema)]
 pub struct UserListQuery {
     pub page: Option<i64>,
     pub per_page: Option<i64>,
@@ -100,7 +101,7 @@ pub struct UserListQuery {
 
 // ── Mutation requests ─────────────────────────────────────────────────────────
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct UpdateUserRequest {
     #[validate(length(min = 1, max = 100, message = "Name must be 1–100 characters"))]
     pub name: Option<String>,
@@ -109,13 +110,13 @@ pub struct UpdateUserRequest {
     pub role: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct DeactivateRequest {
     #[validate(length(min = 5, max = 500, message = "Reason must be 5–500 characters"))]
     pub reason: String,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, ToSchema)]
 pub struct ActivateRequest {
     pub reason: Option<String>,
 }

@@ -1,17 +1,18 @@
+use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use uuid::Uuid;
 
 // ── Responses ─────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct SubmaterialModuleInfo {
     pub id: Uuid,
     pub title: String,
     pub order_index: i32,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct SubmaterialDetailResponse {
     pub id: Uuid,
     pub title: String,
@@ -22,7 +23,7 @@ pub struct SubmaterialDetailResponse {
     pub module: SubmaterialModuleInfo,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct CompleteModuleStatus {
     pub id: Uuid,
     pub completion_percentage: f64,
@@ -30,13 +31,13 @@ pub struct CompleteModuleStatus {
     pub next_submaterial_id: Option<Uuid>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct NextModuleUnlocked {
     pub id: Uuid,
     pub title: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct CompleteSubmaterialResponse {
     pub submaterial_id: Uuid,
     pub completed_at: DateTime<Utc>,

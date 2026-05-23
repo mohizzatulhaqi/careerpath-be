@@ -12,6 +12,16 @@ use axum::{
 use std::sync::Arc;
 use uuid::Uuid;
 
+#[utoipa::path(
+    get,
+    path = "/api/learning/modules",
+    tag = "Learning - Modules",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "List of modules", body = crate::features::learning::module::dto::ModuleListResponse),
+        (status = 401, description = "Unauthorized"),
+    )
+)]
 /// GET /api/learning/modules
 pub async fn list_modules(
     State(state): State<Arc<AppState>>,
@@ -23,6 +33,20 @@ pub async fn list_modules(
     Ok(ApiResponse::ok(data))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/learning/modules/{id}",
+    tag = "Learning - Modules",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Module ID"),
+    ),
+    responses(
+        (status = 200, description = "Module detail", body = crate::features::learning::module::dto::ModuleDetailResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Not found"),
+    )
+)]
 /// GET /api/learning/modules/:id
 pub async fn get_module(
     State(state): State<Arc<AppState>>,

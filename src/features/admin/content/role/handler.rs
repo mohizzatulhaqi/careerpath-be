@@ -19,6 +19,17 @@ use crate::{
     state::AppState,
 };
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/roles",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "List of roles", body = crate::features::admin::content::role::dto::RoleListResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn list_roles(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -28,6 +39,21 @@ pub async fn list_roles(
     Ok(Json(json!({ "success": true, "data": result })))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/roles/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Role ID"),
+    ),
+    responses(
+        (status = 200, description = "Role detail", body = crate::features::admin::content::role::dto::RoleDetailDto),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn get_role(
     _admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -37,6 +63,18 @@ pub async fn get_role(
     Ok(Json(json!({ "success": true, "data": result })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/roles",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    request_body = CreateRoleRequest,
+    responses(
+        (status = 201, description = "Role created"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+    )
+)]
 pub async fn create_role(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -47,6 +85,22 @@ pub async fn create_role(
     Ok((StatusCode::CREATED, Json(json!({ "success": true, "data": { "id": id } }))))
 }
 
+#[utoipa::path(
+    patch,
+    path = "/api/admin/roles/{id}",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Role ID"),
+    ),
+    request_body = UpdateRoleRequest,
+    responses(
+        (status = 200, description = "Role updated"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn update_role(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -58,6 +112,21 @@ pub async fn update_role(
     Ok(Json(json!({ "success": true, "message": "Role updated" })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/roles/{id}/deactivate",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Role ID"),
+    ),
+    responses(
+        (status = 200, description = "Role deactivated"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn deactivate_role(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,
@@ -67,6 +136,21 @@ pub async fn deactivate_role(
     Ok(Json(json!({ "success": true, "message": "Role deactivated" })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/roles/{id}/restore",
+    tag = "Admin - Content",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Role ID"),
+    ),
+    responses(
+        (status = 200, description = "Role restored"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Not found"),
+    )
+)]
 pub async fn restore_role(
     admin: AdminUser,
     State(state): State<Arc<AppState>>,

@@ -2,6 +2,40 @@
 
 REST API untuk aplikasi Career Path Recommendation — Rust + Axum + PostgreSQL.
 
+## API Documentation
+
+Dokumentasi interaktif tersedia setelah server berjalan:
+
+| URL | Keterangan |
+|---|---|
+| [`http://localhost:3002/docs`](http://localhost:3002/docs) | **Scalar UI** — tampilan modern, navigasi per tag |
+| [`http://localhost:3002/swagger`](http://localhost:3002/swagger) | **Swagger UI** — "Try it out" langsung dari browser |
+| [`http://localhost:3002/api-docs/openapi.json`](http://localhost:3002/api-docs/openapi.json) | **Raw OpenAPI 3.x spec** — untuk import Postman / codegen |
+
+### Autentikasi di Swagger UI
+
+1. Buka `http://localhost:3002/swagger`
+2. Klik **Authorize** 🔒 di kanan atas
+3. Login dulu via `POST /api/auth/login` untuk mendapatkan `access_token`
+4. Masukkan token di field **bearer_auth** (tanpa prefix `Bearer`)
+5. Klik **Authorize** → semua endpoint protected otomatis terisi header JWT
+
+### Import ke Postman
+
+- Postman → **Import** → masukkan URL: `http://localhost:3002/api-docs/openapi.json`
+- Postman akan auto-generate collection lengkap dengan semua 83 endpoint
+
+### Generate TypeScript Client (opsional)
+
+```bash
+npx @openapitools/openapi-generator-cli generate \
+  -i http://localhost:3002/api-docs/openapi.json \
+  -g typescript-axios \
+  -o ./generated-client
+```
+
+---
+
 ## Tech Stack
 
 | Layer | Library |
@@ -14,6 +48,7 @@ REST API untuk aplikasi Career Path Recommendation — Rust + Axum + PostgreSQL.
 | Sanitization | ammonia (HTML strip), percent-encoding (RFC 5987 filenames) |
 | Error handling | thiserror + anyhow |
 | Logging | tracing + tracing-subscriber |
+| API Docs | utoipa 5 + Scalar UI + Swagger UI |
 
 ---
 

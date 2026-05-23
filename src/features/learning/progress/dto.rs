@@ -1,16 +1,17 @@
+use utoipa::ToSchema;
 use serde::Serialize;
 use uuid::Uuid;
 
 use crate::features::learning::module::dto::RoleInfo;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct CurrentModuleInfo {
     pub id: Uuid,
     pub title: String,
     pub completion_percentage: f64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ProgressModuleItem {
     pub id: Uuid,
     pub title: String,
@@ -20,7 +21,7 @@ pub struct ProgressModuleItem {
     pub completion_percentage: f64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct OverallProgressResponse {
     pub role: RoleInfo,
     pub overall_percentage: f64,

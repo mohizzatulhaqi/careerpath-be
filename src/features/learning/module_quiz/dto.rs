@@ -1,30 +1,31 @@
+use utoipa::ToSchema;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 // ── Request ───────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct FinalQuizAnswerInput {
     pub question_id: Uuid,
     pub option_id:   Uuid,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct SubmitFinalQuizRequest {
     pub answers: Vec<FinalQuizAnswerInput>,
 }
 
 // ── GET response (no correct answers revealed) ────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct FinalQuizOptionResponse {
     pub id:          Uuid,
     pub text:        String,
     pub order_index: i32,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct FinalQuizQuestionResponse {
     pub id:          Uuid,
     pub question:    String,
@@ -32,7 +33,7 @@ pub struct FinalQuizQuestionResponse {
     pub options:     Vec<FinalQuizOptionResponse>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct FinalQuizResponse {
     pub module_id: Uuid,
     pub questions: Vec<FinalQuizQuestionResponse>,
@@ -40,7 +41,7 @@ pub struct FinalQuizResponse {
 
 // ── Submit response (correct answers revealed) ────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct FinalQuizResultOption {
     pub id:          Uuid,
     pub text:        String,
@@ -48,7 +49,7 @@ pub struct FinalQuizResultOption {
     pub is_correct:  bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct FinalQuizResultQuestion {
     pub id:                Uuid,
     pub question:          String,
@@ -59,7 +60,7 @@ pub struct FinalQuizResultQuestion {
     pub options:           Vec<FinalQuizResultOption>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct FinalQuizSubmitResponse {
     pub attempt_id: Uuid,
     pub score:      f64,
@@ -69,7 +70,7 @@ pub struct FinalQuizSubmitResponse {
 
 // ── History response ──────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct FinalQuizAttemptItem {
     pub attempt_id:  Uuid,
     pub score:       f64,
@@ -77,7 +78,7 @@ pub struct FinalQuizAttemptItem {
     pub created_at:  DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct FinalQuizHistoryResponse {
     pub module_id:  Uuid,
     pub best_score: Option<f64>,
