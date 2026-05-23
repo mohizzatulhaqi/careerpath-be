@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            u.id   AS user_id,\n            u.name AS user_name,\n            u.email AS user_email,\n            p.id   AS project_id,\n            p.title AS project_title,\n            r.code AS role_code,\n            r.name AS role_name\n        FROM project_submissions ps\n        JOIN users u ON u.id = ps.user_id\n        JOIN projects p ON p.id = ps.project_id\n        JOIN roles r ON r.id = p.role_id\n        WHERE ps.id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "user_email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "project_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "project_title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "role_code",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "role_name",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "85607670319e0bad78b5e56056afea0504fc3aa686c08b509078e8ba08b3c758"
+}

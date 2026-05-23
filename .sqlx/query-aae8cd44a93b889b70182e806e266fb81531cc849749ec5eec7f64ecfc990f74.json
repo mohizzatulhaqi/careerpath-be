@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, question_id, text, is_correct, order_index FROM module_quiz_options WHERE question_id=ANY($1) ORDER BY question_id, order_index",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "question_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "text",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "is_correct",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
+        "name": "order_index",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "aae8cd44a93b889b70182e806e266fb81531cc849749ec5eec7f64ecfc990f74"
+}

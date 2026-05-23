@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            mqa.module_id  AS quiz_id,\n            lm.title       AS quiz_title,\n            mqa.score,\n            mqa.passed,\n            mqa.created_at AS attempted_at\n        FROM module_quiz_attempts mqa\n        JOIN learning_modules lm ON lm.id = mqa.module_id\n        WHERE mqa.user_id = $1\n        ORDER BY mqa.created_at DESC\n        LIMIT 10\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "quiz_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "quiz_title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "score",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 3,
+        "name": "passed",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
+        "name": "attempted_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "84db6c4294655580cc180b61ba5b992b1db1d842fbc16b78e242a0643a5cf7ea"
+}

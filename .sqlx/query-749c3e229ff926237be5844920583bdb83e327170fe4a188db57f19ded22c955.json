@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            m.id, m.role_id, m.title, m.description, m.order_index,\n            m.is_published, m.created_at, m.updated_at,\n            COUNT(DISTINCT s.id) AS \"total_subs!: i64\",\n            COUNT(DISTINCT usp.user_id) AS \"total_users!: i64\"\n        FROM learning_modules m\n        LEFT JOIN submaterials s ON s.module_id = m.id\n        LEFT JOIN user_submaterial_progress usp ON usp.submaterial_id = s.id\n        WHERE m.id = $1\n        GROUP BY m.id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "role_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "order_index",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "is_published",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "total_subs!: i64",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 9,
+        "name": "total_users!: i64",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "749c3e229ff926237be5844920583bdb83e327170fe4a188db57f19ded22c955"
+}

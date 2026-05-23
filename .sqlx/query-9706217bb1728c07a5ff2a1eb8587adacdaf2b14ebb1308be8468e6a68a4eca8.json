@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE project_submissions\n        SET status = $1, reviewed_by = $2, reviewed_at = NOW(), reviewer_notes = $3\n        WHERE id = $4\n        RETURNING reviewed_at\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "reviewed_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Uuid",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "9706217bb1728c07a5ff2a1eb8587adacdaf2b14ebb1308be8468e6a68a4eca8"
+}

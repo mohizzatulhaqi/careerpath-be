@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO module_quiz_options (question_id, text, is_correct, order_index) VALUES ($1,$2,$3,$4)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Bool",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c266a871779efa08c09a17cef8fa580ccaf2d971cbf1f68741ad1b3aa2f3a713"
+}

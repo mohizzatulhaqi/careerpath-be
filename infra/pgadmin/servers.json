@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Career Path Local",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "career_path",
+      "Username": "careerpath",
+      "SSLMode": "prefer"
+    }
+  }
+}

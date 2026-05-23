@@ -1,0 +1,95 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, project_id, user_id, file_path, file_original_name, file_size_bytes, file_mime_type, submission_notes, status, reviewer_notes, submitted_at, reviewed_at, reviewed_by\n           FROM project_submissions\n           WHERE project_id = $1 AND user_id = $2\n           ORDER BY submitted_at DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "project_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "file_path",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "file_original_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "file_size_bytes",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 6,
+        "name": "file_mime_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "submission_notes",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
+        "name": "reviewer_notes",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "submitted_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 11,
+        "name": "reviewed_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 12,
+        "name": "reviewed_by",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "791e61f60d57c1cd1f0ba7b93baedf178f73da59898f99774a1779e15593e903"
+}

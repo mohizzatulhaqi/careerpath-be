@@ -1,0 +1,14 @@
+version: "3.9"
+
+# Development overrides — auto-applied when running plain `docker-compose up`
+# Exposes ports to host so `cargo run` on the host can connect to DB
+
+services:
+  postgres:
+    ports:
+      # Expose Postgres to host for native `cargo run` to connect via localhost:5432
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+
+  pgadmin:
+    ports:
+      - "${PGADMIN_HOST_PORT:-5050}:80"

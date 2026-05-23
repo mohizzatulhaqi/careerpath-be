@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        WITH module_sub_counts AS (\n            SELECT\n                lm.id AS module_id,\n                COUNT(DISTINCT ls.id) AS total_subs,\n                COUNT(DISTINCT usp.submaterial_id) AS completed_subs\n            FROM learning_modules lm\n            LEFT JOIN submaterials ls ON ls.module_id = lm.id\n            LEFT JOIN user_submaterial_progress usp\n                ON usp.submaterial_id = ls.id AND usp.user_id = $2\n            WHERE lm.role_id = $1 AND lm.is_published = true\n            GROUP BY lm.id\n        ),\n        module_quiz_best AS (\n            SELECT\n                lm.id AS module_id,\n                COUNT(DISTINCT mq.id) AS total_questions,\n                COALESCE(MAX(mqa.score), -1.0::float8) AS best_score\n            FROM learning_modules lm\n            LEFT JOIN module_quizzes mq ON mq.module_id = lm.id\n            LEFT JOIN module_quiz_attempts mqa\n                ON mqa.module_id = lm.id AND mqa.user_id = $2\n            WHERE lm.role_id = $1 AND lm.is_published = true\n            GROUP BY lm.id\n        )\n        SELECT\n            COUNT(*) AS \"total!: i64\",\n            COUNT(*) FILTER (\n                WHERE msc.total_subs > 0\n                  AND msc.completed_subs = msc.total_subs\n                  AND (mqb.total_questions = 0 OR mqb.best_score >= 70.0)\n            ) AS \"completed!: i64\"\n        FROM module_sub_counts msc\n        JOIN module_quiz_best mqb USING (module_id)\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "total!: i64",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "completed!: i64",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "2a478d52f22a982f2a3cefa33c1c66b08b2bb6c548ed29b5209eb39be4c97bd1"
+}

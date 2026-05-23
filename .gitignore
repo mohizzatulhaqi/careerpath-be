@@ -1,5 +1,30 @@
+# Rust build artifacts
 /target
-.env
 *.pdb
-.sqlx/
+**/*.rs.bk
+
+# Environment files (use .env.example as template)
+.env
+.env.local
+.env.*.local
+
+# Storage (uploaded files — runtime data, not code)
 storage/
+
+# Docker local overrides
+docker-compose.*.local.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test/coverage artifacts
+tarpaulin-report.html
+coverage/
+

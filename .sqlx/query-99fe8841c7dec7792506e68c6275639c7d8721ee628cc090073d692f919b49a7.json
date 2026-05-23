@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT p.id, p.role_id, p.title, p.description, p.requirements,\n               p.estimated_hours, p.is_published, p.created_at, p.updated_at,\n               COUNT(ps.id) AS \"submission_count!: i64\"\n        FROM projects p\n        LEFT JOIN project_submissions ps ON ps.project_id = p.id\n        WHERE p.id=$1\n        GROUP BY p.id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "role_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "requirements",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "estimated_hours",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "is_published",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "submission_count!: i64",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "99fe8841c7dec7792506e68c6275639c7d8721ee628cc090073d692f919b49a7"
+}

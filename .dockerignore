@@ -1,0 +1,41 @@
+# Cargo build artifacts (largest — always exclude)
+target/
+**/*.rs.bk
+
+# Git
+.git
+.gitignore
+
+# Editor & IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files — inject via Docker ENV, never bake into image
+.env
+.env.local
+.env.*.local
+
+# Storage (uploaded files, not part of image)
+storage/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation (not needed in image)
+*.md
+docs/
+
+# Test artifacts
+tarpaulin-report.html
+coverage/
+tests/
+
+# Docker files themselves (not needed in build context)
+docker-compose*.yml
+Dockerfile*
+
+# NOTE: Do NOT exclude .sqlx/ — it's required for SQLX_OFFLINE=true build
+# NOTE: Do NOT exclude migrations/ — copied into image for runtime

@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            s.id, s.module_id, s.title, s.content, s.order_index,\n            s.estimated_minutes, s.is_published, s.created_at, s.updated_at,\n            EXISTS(SELECT 1 FROM submaterial_quizzes sq WHERE sq.submaterial_id = s.id AND sq.is_published=true)\n                AS \"has_mini_quiz!: bool\"\n        FROM submaterials s\n        WHERE s.id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "module_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "content",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "order_index",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "estimated_minutes",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "is_published",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "has_mini_quiz!: bool",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "5b3499c4795eb69be93cebc95d07e3d7a215954ac7fd6dde8b7c02a310003d44"
+}

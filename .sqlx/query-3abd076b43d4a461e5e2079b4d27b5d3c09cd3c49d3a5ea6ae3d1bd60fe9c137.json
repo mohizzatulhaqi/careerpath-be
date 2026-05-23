@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT COUNT(*) FROM quiz_questions WHERE ($1::bool IS NULL OR is_active=$1)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "3abd076b43d4a461e5e2079b4d27b5d3c09cd3c49d3a5ea6ae3d1bd60fe9c137"
+}

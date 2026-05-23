@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE module_quizzes SET question=COALESCE($2,question), order_index=COALESCE($3,order_index) WHERE id=$1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "48695d43bd9a6e8d2f89bf36e1b91ea45066aea22514799890987c21d5626285"
+}

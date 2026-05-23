@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: career_path_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-careerpath}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-careerpath_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-career_path}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-careerpath} -d ${POSTGRES_DB:-career_path}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - career_path_net
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: career_path_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@careerpath.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./infra/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - career_path_net
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  career_path_net:
+    driver: bridge

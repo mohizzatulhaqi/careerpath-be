@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            srh.id,\n            srh.old_status,\n            srh.new_status,\n            srh.reviewer_notes,\n            srh.created_at,\n            u.id   AS reviewer_id,\n            u.name AS reviewer_name\n        FROM submission_review_history srh\n        JOIN users u ON u.id = srh.reviewed_by\n        WHERE srh.submission_id = $1\n        ORDER BY srh.created_at ASC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "old_status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "new_status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "reviewer_notes",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "reviewer_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 6,
+        "name": "reviewer_name",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "5d82dfbd85a5f0720c4188771fcc4667ace69bab6e3cc5cad15fd053d5f042c7"
+}

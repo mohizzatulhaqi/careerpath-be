@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT file_path, file_original_name, file_size_bytes, file_mime_type\n           FROM project_submissions WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "file_path",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "file_original_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "file_size_bytes",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "file_mime_type",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "59f32c2daa212debcc66a9d6e98f38160e10de59d6d6e49157188edc0a2a4665"
+}

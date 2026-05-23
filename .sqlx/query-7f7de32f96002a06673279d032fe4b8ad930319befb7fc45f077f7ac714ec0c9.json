@@ -1,0 +1,48 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, question_text, order_index, is_active, created_at FROM quiz_questions WHERE ($1::bool IS NULL OR is_active=$1) ORDER BY order_index LIMIT $2 OFFSET $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "question_text",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "order_index",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "is_active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "7f7de32f96002a06673279d032fe4b8ad930319befb7fc45f077f7ac714ec0c9"
+}

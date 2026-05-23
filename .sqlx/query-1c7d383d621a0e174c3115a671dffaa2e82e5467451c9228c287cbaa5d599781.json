@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE projects SET\n            title           = COALESCE($2, title),\n            description     = COALESCE($3, description),\n            requirements    = COALESCE($4, requirements),\n            estimated_hours = COALESCE($5, estimated_hours),\n            is_published    = COALESCE($6, is_published),\n            updated_at      = NOW()\n        WHERE id=$1\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Text",
+        "Text",
+        "Int4",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1c7d383d621a0e174c3115a671dffaa2e82e5467451c9228c287cbaa5d599781"
+}

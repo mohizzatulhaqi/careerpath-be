@@ -36,6 +36,101 @@ npx @openapitools/openapi-generator-cli generate \
 
 ---
 
+## Development Setup with Docker
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) & Docker Compose v2
+- Rust toolchain (untuk build native — jauh lebih cepat dari build di dalam container)
+
+### Quick Start (Development — recommended)
+
+```bash
+# 1. Copy env dan sesuaikan JWT_SECRET
+cp .env.example .env
+
+# 2. Jalankan Postgres + pgAdmin (DB saja, app di host)
+docker-compose up -d postgres pgadmin
+
+# 3. Jalankan migration
+cargo sqlx migrate run
+
+# 4. Jalankan server natively
+cargo run
+```
+
+Akses:
+- **API**: `http://localhost:3002`
+- **Scalar UI**: `http://localhost:3002/docs`
+- **Swagger UI**: `http://localhost:3002/swagger`
+- **pgAdmin**: `http://localhost:5050` — login: `admin@careerpath.local` / `admin`
+
+> **Kenapa `cargo run` di host?** Compile native jauh lebih cepat (~5-30 detik incremental) dibanding build di dalam container. Container hanya untuk services (DB, admin UI).
+
+---
+
+### Production-like Run (Full Docker)
+
+Sebelum build Docker pertama kali, atau setelah mengubah query sqlx:
+
+```bash
+# Generate .sqlx/ offline cache (dibutuhkan untuk Docker build)
+cargo sqlx prepare --workspace
+# Lalu commit .sqlx/ ke git
+```
+
+Build dan jalankan semua di Docker:
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+```
+
+Akses: `http://localhost:3002/health` → `ok`
+
+---
+
+### Stop Services
+
+```bash
+docker-compose down           # stop, data tetap ada
+docker-compose down -v        # stop + hapus volumes (HATI-HATI: data hilang)
+```
+
+---
+
+### Docker Files Overview
+
+| File | Fungsi |
+|---|---|
+| `Dockerfile` | Multi-stage build pakai `cargo-chef` — image akhir ~120 MB |
+| `.dockerignore` | Exclude `target/`, `.env`, `storage/` dari build context |
+| `docker-compose.yml` | Base: postgres + pgadmin |
+| `docker-compose.override.yml` | Dev: expose port postgres & pgadmin ke host (auto-applied) |
+| `docker-compose.prod.yml` | Production: tambah app service, no host port untuk postgres |
+| `infra/pgadmin/servers.json` | Auto-register postgres server di pgAdmin |
+
+---
+
+### Troubleshooting
+
+**Build Docker lama pertama kali** — cargo-chef butuh ~10-20 menit compile dependencies. Build berikutnya incremental < 2 menit (layer ter-cache).
+
+**SQLx offline error saat Docker build**:
+```bash
+error: set `SQLX_OFFLINE=true` to run without database connection
+```
+Solusi: jalankan `cargo sqlx prepare --workspace` lalu commit folder `.sqlx/`.
+
+**Permission denied `/app/storage`** — UID 1000 di host konflik. Ubah `--uid 1000` di Dockerfile ke UID user kamu (`id -u`).
+
+**pgAdmin tidak bisa connect otomatis** — hapus volume lama lalu restart:
+```bash
+docker-compose down -v
+docker-compose up -d postgres pgadmin
+```
+
+---
+
 ## Tech Stack
 
 | Layer | Library |

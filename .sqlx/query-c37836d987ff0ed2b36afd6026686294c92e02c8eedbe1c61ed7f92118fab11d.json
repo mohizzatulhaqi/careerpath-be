@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE submaterials SET\n            title             = COALESCE($2, title),\n            content           = COALESCE($3, content),\n            order_index       = COALESCE($4, order_index),\n            estimated_minutes = COALESCE($5, estimated_minutes),\n            is_published      = COALESCE($6, is_published),\n            updated_at        = NOW()\n        WHERE id = $1\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Text",
+        "Int4",
+        "Int4",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c37836d987ff0ed2b36afd6026686294c92e02c8eedbe1c61ed7f92118fab11d"
+}

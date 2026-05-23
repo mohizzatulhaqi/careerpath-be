@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            r.code,\n            r.name,\n            COUNT(*) AS \"pending_count!\"\n        FROM project_submissions ps\n        JOIN projects p ON p.id = ps.project_id\n        JOIN roles r ON r.id = p.role_id\n        WHERE ps.status = 'pending_review'\n        GROUP BY r.id, r.code, r.name\n        ORDER BY r.name\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "code",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "pending_count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "46d133a5d1ddb7a2b8f1fb9091bb2ad82ee9169ac1e6f916ec2dfc3add57a5db"
+}

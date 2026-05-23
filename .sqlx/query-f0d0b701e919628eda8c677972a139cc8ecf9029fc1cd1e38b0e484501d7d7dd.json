@@ -1,0 +1,94 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT id, status, project_id, user_id, reviewed_by, reviewer_notes,\n               reviewed_at, file_path, file_original_name, file_size_bytes, file_mime_type,\n               submission_notes, submitted_at\n        FROM project_submissions\n        WHERE id = $1\n        FOR UPDATE\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "project_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "reviewed_by",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 5,
+        "name": "reviewer_notes",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "reviewed_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "file_path",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 8,
+        "name": "file_original_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
+        "name": "file_size_bytes",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 10,
+        "name": "file_mime_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 11,
+        "name": "submission_notes",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 12,
+        "name": "submitted_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "f0d0b701e919628eda8c677972a139cc8ecf9029fc1cd1e38b0e484501d7d7dd"
+}

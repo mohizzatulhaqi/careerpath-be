@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, question_id, option_text, order_index FROM quiz_options WHERE question_id=ANY($1) ORDER BY question_id, order_index",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "question_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "option_text",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "order_index",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "925f18b2a24b86598129c296475f66971a40b386bbe762185db7388cc83dc72c"
+}

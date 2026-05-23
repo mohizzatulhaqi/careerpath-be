@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT orw.option_id, orw.role_id, r.code AS role_code, orw.weight FROM option_role_weights orw JOIN roles r ON r.id=orw.role_id WHERE orw.option_id=ANY($1)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "option_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "role_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "role_code",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "weight",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "1607e86b7504203c11eccc6bed0dbc1ee2264fa49e1a331349961cd27628778e"
+}

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE submaterials SET is_published=$2, updated_at=NOW() WHERE id=$1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "cc98c112d5a5b52957060cef3238f12ff499df11dc8a3efbee932f8348356c4e"
+}

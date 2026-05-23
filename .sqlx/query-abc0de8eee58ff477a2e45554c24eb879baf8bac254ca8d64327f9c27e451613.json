@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT COUNT(*) FROM learning_modules\n        WHERE ($1::uuid IS NULL OR role_id = $1)\n          AND ($2::bool IS NULL OR is_published = $2)\n          AND ($3::text IS NULL OR title ILIKE $3)\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "abc0de8eee58ff477a2e45554c24eb879baf8bac254ca8d64327f9c27e451613"
+}

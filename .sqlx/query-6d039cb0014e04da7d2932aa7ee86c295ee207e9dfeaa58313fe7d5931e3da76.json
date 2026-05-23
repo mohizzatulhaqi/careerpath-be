@@ -1,0 +1,77 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            a.id,\n            a.admin_id,\n            u.name  AS admin_name,\n            u.email AS admin_email,\n            a.action,\n            a.target_type,\n            a.target_id,\n            a.metadata,\n            a.created_at\n        FROM admin_audit_logs a\n        JOIN users u ON u.id = a.admin_id\n        WHERE\n            ($1::text   IS NULL OR a.action      = $1)\n            AND ($2::uuid   IS NULL OR a.admin_id   = $2)\n            AND ($3::text   IS NULL OR a.target_type = $3)\n            AND ($4::uuid   IS NULL OR a.target_id  = $4)\n            AND ($5::timestamptz IS NULL OR a.created_at >= $5)\n            AND ($6::timestamptz IS NULL OR a.created_at <= $6)\n        ORDER BY a.created_at DESC\n        LIMIT $7 OFFSET $8\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "admin_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "admin_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "admin_email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "action",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "target_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "target_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 7,
+        "name": "metadata",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "6d039cb0014e04da7d2932aa7ee86c295ee207e9dfeaa58313fe7d5931e3da76"
+}

@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT COUNT(*)\n        FROM project_submissions ps\n        JOIN projects p ON p.id = ps.project_id\n        JOIN roles r ON r.id = p.role_id\n        JOIN users u ON u.id = ps.user_id\n        WHERE\n            ($1::boolean OR ps.status = $2)\n            AND ($3::uuid IS NULL OR ps.project_id = $3)\n            AND ($4::uuid IS NULL OR ps.user_id = $4)\n            AND ($5::uuid IS NULL OR p.role_id = $5)\n            AND ($6::timestamptz IS NULL OR ps.submitted_at >= $6)\n            AND ($7::timestamptz IS NULL OR ps.submitted_at <= $7)\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "6319e970afc8c4127efc7245c9c36cd5ca5c55379a78410e767d74a13c97e577"
+}

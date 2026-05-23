@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM submaterial_quizzes WHERE id=$1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3756db0fe21d2d9dbef8ce05f725ebba1e1651bec4beeac73636ee5b430a4b08"
+}

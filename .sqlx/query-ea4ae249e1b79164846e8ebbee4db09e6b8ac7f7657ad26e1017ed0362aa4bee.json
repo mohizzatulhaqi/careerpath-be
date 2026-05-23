@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT COUNT(DISTINCT usp.user_id)\n        FROM user_submaterial_progress usp\n        JOIN submaterials s ON s.id = usp.submaterial_id\n        WHERE s.module_id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "ea4ae249e1b79164846e8ebbee4db09e6b8ac7f7657ad26e1017ed0362aa4bee"
+}

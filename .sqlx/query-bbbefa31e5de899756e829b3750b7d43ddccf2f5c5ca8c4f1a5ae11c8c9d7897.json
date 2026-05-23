@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT id, question_id, text, is_correct, order_index\n        FROM submaterial_quiz_options\n        WHERE question_id = ANY($1)\n        ORDER BY question_id, order_index\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "question_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "text",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "is_correct",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
+        "name": "order_index",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "bbbefa31e5de899756e829b3750b7d43ddccf2f5c5ca8c4f1a5ae11c8c9d7897"
+}

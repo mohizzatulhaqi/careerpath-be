@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT status, COUNT(*) AS \"cnt!\"\n        FROM project_submissions\n        GROUP BY status\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "cnt!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "61c1b80d74852aef9c0f821dbc3aae5e656d86356b31c4974ce56b5a601e3ea8"
+}

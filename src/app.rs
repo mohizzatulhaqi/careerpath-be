@@ -1,5 +1,5 @@
 use crate::{features, openapi, state::AppState};
-use axum::{http::Method, Router};
+use axum::{http::Method, Router, routing::get};
 use std::sync::Arc;
 use tower_http::{cors::{Any, CorsLayer}, trace::TraceLayer};
 use utoipa_scalar::{Scalar, Servable as ScalarServable};
@@ -21,6 +21,7 @@ pub fn create_app(state: Arc<AppState>) -> Router {
     let openapi_spec = openapi::build();
 
     Router::new()
+        .route("/health", get(|| async { "ok" }))
         .nest("/api", api_router())
         // Scalar UI at /docs
         .merge(Scalar::with_url("/docs", openapi_spec.clone()))

@@ -1,0 +1,38 @@
+version: "3.9"
+
+# Production-like stack — opt-in, not auto-applied
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: career-path-be:latest
+    container_name: career_path_app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-careerpath}:${POSTGRES_PASSWORD:-careerpath_dev_password}@postgres:5432/${POSTGRES_DB:-career_path}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-3600}
+      REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-2592000}
+      SERVER_PORT: ${SERVER_PORT:-3002}
+      STORAGE_ROOT: /app/storage
+      MAX_UPLOAD_SIZE_BYTES: ${MAX_UPLOAD_SIZE_BYTES:-26214400}
+      RUST_LOG: ${RUST_LOG:-info,career_path_be=info}
+    volumes:
+      - app_storage:/app/storage
+    ports:
+      - "${APP_HOST_PORT:-3002}:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - career_path_net
+
+  # Postgres: no host port exposure in production
+  postgres:
+    ports: []
+
+volumes:
+  app_storage:

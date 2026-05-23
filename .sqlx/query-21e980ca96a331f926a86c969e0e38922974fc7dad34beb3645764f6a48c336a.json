@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT id, submaterial_id, question, order_index, is_published, created_at\n        FROM submaterial_quizzes\n        WHERE submaterial_id = $1\n        ORDER BY order_index\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "submaterial_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "question",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "order_index",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "is_published",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "21e980ca96a331f926a86c969e0e38922974fc7dad34beb3645764f6a48c336a"
+}

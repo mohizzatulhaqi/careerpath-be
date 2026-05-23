@@ -1,0 +1,148 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            ps.id,\n            ps.status,\n            ps.submitted_at,\n            ps.submission_notes,\n            ps.file_original_name,\n            ps.file_size_bytes,\n            ps.file_mime_type,\n            ps.reviewed_by,\n            ps.reviewed_at,\n            ps.reviewer_notes,\n            -- user\n            u.id   AS user_id,\n            u.name AS user_name,\n            u.email AS user_email,\n            -- role (nullable: user might have no role yet or role deactivated)\n            r.code AS \"role_code?\",\n            r.name AS \"role_name?\",\n            -- project\n            p.id          AS project_id,\n            p.title       AS project_title,\n            p.description AS project_description,\n            p.requirements AS project_requirements,\n            p.estimated_hours AS project_estimated_hours,\n            -- reviewer (CASE WHEN to force nullable type in sqlx query_as!)\n            CASE WHEN ps.reviewed_by IS NOT NULL THEN ru.id   END AS \"reviewer_id?\",\n            CASE WHEN ps.reviewed_by IS NOT NULL THEN ru.name END AS \"reviewer_name?\"\n        FROM project_submissions ps\n        JOIN users u ON u.id = ps.user_id\n        JOIN projects p ON p.id = ps.project_id\n        LEFT JOIN roles r ON r.id = (\n            SELECT qa.result_role_id FROM quiz_attempts qa\n            WHERE qa.user_id = ps.user_id AND qa.status = 'submitted' AND qa.result_role_id IS NOT NULL\n            ORDER BY qa.submitted_at DESC NULLS LAST LIMIT 1\n        )\n        LEFT JOIN users ru ON ru.id = ps.reviewed_by\n        WHERE ps.id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "submitted_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "submission_notes",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "file_original_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "file_size_bytes",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 6,
+        "name": "file_mime_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "reviewed_by",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 8,
+        "name": "reviewed_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "reviewer_notes",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 11,
+        "name": "user_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 12,
+        "name": "user_email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 13,
+        "name": "role_code?",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 14,
+        "name": "role_name?",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 15,
+        "name": "project_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 16,
+        "name": "project_title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 17,
+        "name": "project_description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 18,
+        "name": "project_requirements",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 19,
+        "name": "project_estimated_hours",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 20,
+        "name": "reviewer_id?",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 21,
+        "name": "reviewer_name?",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "6b418bb6830142e5094d3577bc090d4fca6c9e55558d7a35fb21eaf52c7e50b7"
+}

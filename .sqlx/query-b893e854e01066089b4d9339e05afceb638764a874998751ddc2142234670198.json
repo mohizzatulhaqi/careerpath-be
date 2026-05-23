@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE submaterial_quizzes SET\n            question    = COALESCE($2, question),\n            order_index = COALESCE($3, order_index)\n        WHERE id=$1\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b893e854e01066089b4d9339e05afceb638764a874998751ddc2142234670198"
+}

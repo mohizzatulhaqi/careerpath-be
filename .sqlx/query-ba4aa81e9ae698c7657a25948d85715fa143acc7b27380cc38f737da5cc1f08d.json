@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT COUNT(*) FROM projects WHERE ($1::uuid IS NULL OR role_id=$1) AND ($2::bool IS NULL OR is_published=$2)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "ba4aa81e9ae698c7657a25948d85715fa143acc7b27380cc38f737da5cc1f08d"
+}

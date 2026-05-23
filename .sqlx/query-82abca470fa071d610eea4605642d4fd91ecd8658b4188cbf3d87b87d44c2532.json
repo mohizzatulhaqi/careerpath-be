@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE quiz_questions SET is_active=$2, updated_at=NOW() WHERE id=$1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "82abca470fa071d610eea4605642d4fd91ecd8658b4188cbf3d87b87d44c2532"
+}

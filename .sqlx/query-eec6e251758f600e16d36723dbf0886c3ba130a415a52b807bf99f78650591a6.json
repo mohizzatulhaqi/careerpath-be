@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO option_role_weights (option_id, role_id, weight) VALUES ($1,$2,$3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "eec6e251758f600e16d36723dbf0886c3ba130a415a52b807bf99f78650591a6"
+}

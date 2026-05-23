@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT COUNT(DISTINCT module_id) FROM module_quiz_attempts\n                   WHERE user_id = $1 AND passed = true",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "42309ec6105b9bf17a56121f0e8ac280811f8a4f6ffd8f3b7275a210d6a7c8a3"
+}

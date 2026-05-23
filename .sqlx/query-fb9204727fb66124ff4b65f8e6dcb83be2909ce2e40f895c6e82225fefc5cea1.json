@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE quiz_questions SET question_text=COALESCE($2,question_text), order_index=COALESCE($3,order_index), is_active=COALESCE($4,is_active), updated_at=NOW() WHERE id=$1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Int4",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fb9204727fb66124ff4b65f8e6dcb83be2909ce2e40f895c6e82225fefc5cea1"
+}
