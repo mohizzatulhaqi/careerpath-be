@@ -8,8 +8,8 @@ Dokumentasi interaktif tersedia setelah server berjalan:
 
 | URL | Keterangan |
 |---|---|
-| [`http://localhost:3002/docs`](http://localhost:3002/docs) | **Scalar UI** — tampilan modern, navigasi per tag |
-| [`http://localhost:3002/swagger`](http://localhost:3002/swagger) | **Swagger UI** — "Try it out" langsung dari browser |
+| [`http://localhost:3002/docs`](http://localhost:3002/docs) | **Scalar UI** |
+| [`http://localhost:3002/swagger`](http://localhost:3002/swagger) | **Swagger UI** |
 | [`http://localhost:3002/api-docs/openapi.json`](http://localhost:3002/api-docs/openapi.json) | **Raw OpenAPI 3.x spec** — untuk import Postman / codegen |
 
 ### Autentikasi di Swagger UI
@@ -23,7 +23,7 @@ Dokumentasi interaktif tersedia setelah server berjalan:
 ### Import ke Postman
 
 - Postman → **Import** → masukkan URL: `http://localhost:3002/api-docs/openapi.json`
-- Postman akan auto-generate collection lengkap dengan semua 83 endpoint
+- Postman akan auto-generate collection lengkap dengan semua endpoint
 
 ### Generate TypeScript Client (opsional)
 
@@ -36,64 +36,54 @@ npx @openapitools/openapi-generator-cli generate \
 
 ---
 
-## Development Setup with Docker
+## Setup & Menjalankan dengan Docker
 
 ### Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) & Docker Compose v2
-- Rust toolchain (untuk build native — jauh lebih cepat dari build di dalam container)
+- Akun [Neon](https://neon.tech) (database PostgreSQL cloud — gratis)
 
-### Quick Start (Development — recommended)
+### Quick Start
 
 ```bash
-# 1. Copy env dan sesuaikan JWT_SECRET
+# 1. Clone repo
+git clone <repo-url>
+cd career-path-be
+
+# 2. Buat file .env
 cp .env.example .env
+# Edit .env: isi DATABASE_URL dari Neon, dan JWT_SECRET
 
-# 2. Jalankan Postgres + pgAdmin (DB saja, app di host)
-docker-compose up -d postgres pgadmin
+# 3. Jalankan migrasi ke Neon (sekali saja, atau setiap ada migration baru)
+sqlx migrate run
 
-# 3. Jalankan migration
-cargo sqlx migrate run
-
-# 4. Jalankan server natively
-cargo run
+# 4. Build & jalankan
+docker compose up --build
 ```
 
 Akses:
 - **API**: `http://localhost:3002`
+- **Health check**: `http://localhost:3002/health`
 - **Scalar UI**: `http://localhost:3002/docs`
 - **Swagger UI**: `http://localhost:3002/swagger`
-- **pgAdmin**: `http://localhost:5050` — login: `admin@careerpath.local` / `admin`
 
-> **Kenapa `cargo run` di host?** Compile native jauh lebih cepat (~5-30 detik incremental) dibanding build di dalam container. Container hanya untuk services (DB, admin UI).
-
----
-
-### Production-like Run (Full Docker)
-
-Sebelum build Docker pertama kali, atau setelah mengubah query sqlx:
+### Install sqlx-cli (untuk migrate)
 
 ```bash
-# Generate .sqlx/ offline cache (dibutuhkan untuk Docker build)
-cargo sqlx prepare --workspace
-# Lalu commit .sqlx/ ke git
+cargo install sqlx-cli --no-default-features --features postgres,rustls
 ```
 
-Build dan jalankan semua di Docker:
+### Stop & Start ulang
 
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
-```
+# Stop container
+docker compose down
 
-Akses: `http://localhost:3002/health` → `ok`
+# Jalankan lagi (tanpa rebuild)
+docker compose up -d
 
----
-
-### Stop Services
-
-```bash
-docker-compose down           # stop, data tetap ada
-docker-compose down -v        # stop + hapus volumes (HATI-HATI: data hilang)
+# Jalankan lagi + rebuild (setelah ada perubahan code)
+docker compose up --build -d
 ```
 
 ---
@@ -104,10 +94,24 @@ docker-compose down -v        # stop + hapus volumes (HATI-HATI: data hilang)
 |---|---|
 | `Dockerfile` | Multi-stage build pakai `cargo-chef` — image akhir ~120 MB |
 | `.dockerignore` | Exclude `target/`, `.env`, `storage/` dari build context |
-| `docker-compose.yml` | Base: postgres + pgadmin |
-| `docker-compose.override.yml` | Dev: expose port postgres & pgadmin ke host (auto-applied) |
-| `docker-compose.prod.yml` | Production: tambah app service, no host port untuk postgres |
-| `infra/pgadmin/servers.json` | Auto-register postgres server di pgAdmin |
+| `docker-compose.yml` | App service + volume storage |
+| `docker-compose.override.yml` | (kosong — untuk override lokal jika diperlukan) |
+| `docker-compose.prod.yml` | (kosong — untuk override production jika diperlukan) |
+
+---
+
+### Environment Variables
+
+Salin `.env.example` ke `.env` dan isi variabel berikut:
+
+| Variabel | Keterangan |
+|---|---|
+| `DATABASE_URL` | Connection string Neon (dari dashboard neon.tech) |
+| `JWT_SECRET` | String acak ≥ 32 karakter (`openssl rand -base64 48`) |
+| `JWT_EXPIRES_IN` | TTL access token dalam detik (default: 900 = 15 menit) |
+| `REFRESH_TOKEN_EXPIRES_IN` | TTL refresh token dalam detik (default: 604800 = 7 hari) |
+| `SERVER_PORT` | Port server (default: 3002) |
+| `RUST_LOG` | Log level (default: `info,career_path_be=debug`) |
 
 ---
 
@@ -116,98 +120,23 @@ docker-compose down -v        # stop + hapus volumes (HATI-HATI: data hilang)
 **Build Docker lama pertama kali** — cargo-chef butuh ~10-20 menit compile dependencies. Build berikutnya incremental < 2 menit (layer ter-cache).
 
 **SQLx offline error saat Docker build**:
-```bash
+```
 error: set `SQLX_OFFLINE=true` to run without database connection
 ```
-Solusi: jalankan `cargo sqlx prepare --workspace` lalu commit folder `.sqlx/`.
+Solusi: jalankan `cargo sqlx prepare` lalu commit folder `.sqlx/`.
 
-**Permission denied `/app/storage`** — UID 1000 di host konflik. Ubah `--uid 1000` di Dockerfile ke UID user kamu (`id -u`).
-
-**pgAdmin tidak bisa connect otomatis** — hapus volume lama lalu restart:
+**TLS error saat sqlx migrate**:
+```
+TLS upgrade required but SQLx was built without TLS support
+```
+Solusi: install ulang sqlx-cli dengan flag rustls:
 ```bash
-docker-compose down -v
-docker-compose up -d postgres pgadmin
+cargo install sqlx-cli --no-default-features --features postgres,rustls --force
 ```
 
 ---
 
-## Tech Stack
-
-| Layer | Library |
-|---|---|
-| HTTP | axum 0.7 |
-| Async runtime | tokio |
-| Database | PostgreSQL via sqlx 0.8 |
-| Auth | JWT (jsonwebtoken) + Argon2 |
-| Validation | validator |
-| Sanitization | ammonia (HTML strip), percent-encoding (RFC 5987 filenames) |
-| Error handling | thiserror + anyhow |
-| Logging | tracing + tracing-subscriber |
-| API Docs | utoipa 5 + Scalar UI + Swagger UI |
-
----
-
-## Prasyarat
-
-- Rust ≥ 1.75 (stable)
-- PostgreSQL ≥ 14
-- `sqlx-cli` (opsional, untuk migration)
-
-Install sqlx-cli:
-```bash
-cargo install sqlx-cli --no-default-features --features rustls,postgres
-```
-
----
-
-## Setup
-
-### 1. Buat database
-
-```bash
-psql -U postgres -c "CREATE DATABASE career_path;"
-```
-
-### 2. Konfigurasi environment
-
-```bash
-cp .env.example .env
-# Edit .env sesuai kredensial PostgreSQL kamu
-```
-
-Variabel yang diperlukan:
-
-```
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/career_path
-JWT_SECRET=<string acak panjang ≥ 32 karakter>
-JWT_EXPIRES_IN=86400       # detik (default: 24 jam)
-SERVER_PORT=3002
-RUST_LOG=info,career_path_be=debug
-```
-
-### 3. Jalankan migration
-
-**Opsi A — sqlx-cli (recommended):**
-```bash
-sqlx migrate run
-```
-
-**Opsi B — psql manual:**
-```bash
-psql "$DATABASE_URL" -f migrations/20240101000000_create_users.sql
-```
-
-### 4. Build & run
-
-```bash
-cargo run
-```
-
-Server berjalan di `http://localhost:3002`.
-
----
-
-##  Default Admin Credentials
+## Default Admin Credentials
 
 Setelah menjalankan migration, akan ada satu akun admin seeder:
 
@@ -217,13 +146,16 @@ Setelah menjalankan migration, akan ada satu akun admin seeder:
 | Password | `ChangeMeASAP123!` |
 | UUID | `00000000-0000-0000-0000-000000000001` |
 
-> **WAJIB GANTI PASSWORD SETELAH FIRST LOGIN.**  
+> **WAJIB GANTI PASSWORD SETELAH FIRST LOGIN.**
 
 Untuk generate hash password baru:
 ```bash
 cargo run --bin gen_password_hash -- "PasswordBaruKamu123!"
 ```
-Kemudian update via `UPDATE users SET password_hash = '...' WHERE id = '00000000-0000-0000-0000-000000000001';`
+Kemudian update via:
+```sql
+UPDATE users SET password_hash = '...' WHERE id = '00000000-0000-0000-0000-000000000001';
+```
 
 ---
 
@@ -249,36 +181,19 @@ Semua endpoint `/api/admin/*` memerlukan Bearer token dengan role `admin`.
 | `POST` | `/api/admin/users/:id/deactivate` | Soft delete dengan alasan |
 | `POST` | `/api/admin/users/:id/activate` | Reaktivasi user |
 | `GET` | `/api/admin/users/:id/audit-logs` | Audit trail untuk user tertentu |
-| `GET` | `/api/admin/audit-logs` | Audit trail global (filter: action, admin_id, target_type, dll) |
-
-**Query params `GET /api/admin/users`:**
-
-| Param | Type | Deskripsi |
-|---|---|---|
-| `page` | int | Halaman (default: 1) |
-| `per_page` | int | Per halaman (default: 20, max: 100) |
-| `search` | string | Cari berdasarkan nama atau email (ILIKE) |
-| `role` | string | Filter by role (`user` / `admin`) |
-| `is_active` | bool | Filter by status aktif |
-| `sort` | string | Kolom sort: `name`, `email`, `role`, `created_at` |
-| `order` | string | Arah sort: `asc` / `desc` (default: `desc`) |
+| `GET` | `/api/admin/audit-logs` | Audit trail global |
 
 ---
 
 ### Admin — Content Management (role: admin)
 
-Semua endpoint di bawah memerlukan Bearer token dengan role `admin`. Prinsip:
-- **Soft delete default** — resource di-unpublish/deactivate, bukan dihapus permanen.
-- **Force flag (`?force=true`)** — diperlukan untuk operasi yang punya side effect (menghapus resource yang dipakai user, mengubah opsi quiz yang sudah dijawab, dll.). Tanpa `force`, server mengembalikan `409 REQUIRES_FORCE` beserta `affected_count`.
-- **Audit trail** — semua mutasi dicatat ke `admin_audit_logs`.
-
 #### Roles
 
 | Method | Path | Deskripsi |
 |---|---|---|
-| `GET` | `/api/admin/roles` | Daftar career role (filter: is_active, page, per_page) |
-| `POST` | `/api/admin/roles` | Buat role baru (code harus lowercase alphanumeric + `_`) |
-| `GET` | `/api/admin/roles/:id` | Detail role + stats (total modules, total users) |
+| `GET` | `/api/admin/roles` | Daftar career role |
+| `POST` | `/api/admin/roles` | Buat role baru |
+| `GET` | `/api/admin/roles/:id` | Detail role + stats |
 | `PATCH` | `/api/admin/roles/:id` | Update nama/deskripsi role |
 | `POST` | `/api/admin/roles/:id/deactivate` | Non-aktifkan role |
 | `POST` | `/api/admin/roles/:id/restore` | Aktifkan kembali role |
@@ -287,63 +202,51 @@ Semua endpoint di bawah memerlukan Bearer token dengan role `admin`. Prinsip:
 
 | Method | Path | Deskripsi |
 |---|---|---|
-| `GET` | `/api/admin/modules` | Daftar modul (filter: role_id, is_published, page, per_page) |
-| `POST` | `/api/admin/modules` | Buat modul baru (wajib role_id aktif, order_index otomatis) |
+| `GET` | `/api/admin/modules` | Daftar modul |
+| `POST` | `/api/admin/modules` | Buat modul baru |
 | `GET` | `/api/admin/modules/:id` | Detail modul + stats |
-| `PATCH` | `/api/admin/modules/:id` | Update modul (order conflict → 409) |
-| `DELETE` | `/api/admin/modules/:id` | Soft delete (unpublish). `?force=true` → hard delete jika ada user progress |
+| `PATCH` | `/api/admin/modules/:id` | Update modul |
+| `DELETE` | `/api/admin/modules/:id` | Soft delete. `?force=true` → hard delete |
 | `POST` | `/api/admin/modules/:id/restore` | Publikasikan kembali modul |
-| `GET` | `/api/admin/modules/:module_id/final-quiz` | Daftar soal final quiz modul |
 
 #### Submaterials
 
 | Method | Path | Deskripsi |
 |---|---|---|
-| `GET` | `/api/admin/submaterials` | Daftar submaterial (filter: module_id, is_published, page, per_page) |
-| `POST` | `/api/admin/submaterials` | Buat submaterial (respons menyertakan `requires_mini_quiz: true`) |
+| `GET` | `/api/admin/submaterials` | Daftar submaterial |
+| `POST` | `/api/admin/submaterials` | Buat submaterial |
 | `GET` | `/api/admin/submaterials/:id` | Detail submaterial |
 | `PATCH` | `/api/admin/submaterials/:id` | Update submaterial |
 | `DELETE` | `/api/admin/submaterials/:id` | Soft delete. `?force=true` → hard delete |
 | `POST` | `/api/admin/submaterials/:id/restore` | Publish kembali |
-| `GET` | `/api/admin/submaterials/:submaterial_id/quiz` | Daftar soal mini quiz |
 
-#### Mini Quiz Questions (per Submaterial)
-
-| Method | Path | Deskripsi |
-|---|---|---|
-| `POST` | `/api/admin/submaterial-quiz-questions` | Tambah soal (wajib tepat 1 opsi `is_correct=true`) |
-| `PATCH` | `/api/admin/submaterial-quiz-questions/:id` | Update teks/order soal |
-| `PATCH` | `/api/admin/submaterial-quiz-questions/:id/options` | Ganti semua opsi. `?force=true` jika sudah ada attempt |
-| `DELETE` | `/api/admin/submaterial-quiz-questions/:id` | Soft delete. `?force=true` jika ada attempt |
-
-#### Final Quiz Questions (per Module)
+#### Quiz Questions
 
 | Method | Path | Deskripsi |
 |---|---|---|
-| `POST` | `/api/admin/module-quiz-questions` | Tambah soal (minimal 1 opsi `is_correct=true`, boleh lebih dari 1) |
+| `POST` | `/api/admin/submaterial-quiz-questions` | Tambah soal mini quiz |
+| `PATCH` | `/api/admin/submaterial-quiz-questions/:id` | Update soal |
+| `PATCH` | `/api/admin/submaterial-quiz-questions/:id/options` | Ganti semua opsi |
+| `DELETE` | `/api/admin/submaterial-quiz-questions/:id` | Hapus soal |
+| `POST` | `/api/admin/module-quiz-questions` | Tambah soal final quiz |
 | `PATCH` | `/api/admin/module-quiz-questions/:id` | Update soal |
-| `PATCH` | `/api/admin/module-quiz-questions/:id/options` | Ganti semua opsi. `?force=true` jika ada attempt |
-| `DELETE` | `/api/admin/module-quiz-questions/:id` | Soft delete. `?force=true` jika ada attempt |
-
-#### Pre-Quiz Questions (Role Determining)
-
-| Method | Path | Deskripsi |
-|---|---|---|
-| `GET` | `/api/admin/pre-quiz-questions` | Daftar soal pre-quiz (filter: is_active, page, per_page) |
-| `POST` | `/api/admin/pre-quiz-questions` | Tambah soal + opsi + bobot per role |
-| `GET` | `/api/admin/pre-quiz-questions/:id` | Detail soal + opsi + bobot |
-| `PATCH` | `/api/admin/pre-quiz-questions/:id` | Update teks/order/is_active soal |
-| `PATCH` | `/api/admin/pre-quiz-questions/:id/options` | Ganti semua opsi + bobot. `?force=true` jika ada attempt |
+| `PATCH` | `/api/admin/module-quiz-questions/:id/options` | Ganti semua opsi |
+| `DELETE` | `/api/admin/module-quiz-questions/:id` | Hapus soal |
+| `GET` | `/api/admin/pre-quiz-questions` | Daftar soal pre-quiz |
+| `POST` | `/api/admin/pre-quiz-questions` | Tambah soal pre-quiz |
+| `GET` | `/api/admin/pre-quiz-questions/:id` | Detail soal |
+| `PATCH` | `/api/admin/pre-quiz-questions/:id` | Update soal |
+| `PATCH` | `/api/admin/pre-quiz-questions/:id/options` | Ganti semua opsi |
 | `POST` | `/api/admin/pre-quiz-questions/:id/deactivate` | Non-aktifkan soal |
-| `POST` | `/api/admin/pre-quiz-questions/:id/restore` | Aktifkan kembali soal |
+| `POST` | `/api/admin/pre-quiz-questions/:id/restore` | Aktifkan kembali |
 
 #### Projects
 
 | Method | Path | Deskripsi |
 |---|---|---|
-| `GET` | `/api/admin/projects` | Daftar project (filter: role_id, is_published, page, per_page) |
-| `POST` | `/api/admin/projects` | Buat project (1 project per role) |
-| `GET` | `/api/admin/projects/:id` | Detail project + jumlah submission |
+| `GET` | `/api/admin/projects` | Daftar project |
+| `POST` | `/api/admin/projects` | Buat project |
+| `GET` | `/api/admin/projects/:id` | Detail project |
 | `PATCH` | `/api/admin/projects/:id` | Update project |
 | `POST` | `/api/admin/projects/:id/unpublish` | Unpublish project |
 | `POST` | `/api/admin/projects/:id/restore` | Publish kembali |
@@ -352,239 +255,30 @@ Semua endpoint di bawah memerlukan Bearer token dengan role `admin`. Prinsip:
 
 ### Admin — Submission Review (role: admin)
 
-Admin dapat melihat antrian submission, mengunduh file ZIP, menyetujui atau menolak dengan catatan, dan mencabut keputusan sebelumnya. Setiap tindakan dicatat ke `submission_review_history` **dan** `admin_audit_logs` dalam satu transaksi.
-
-**State machine yang diizinkan:**
-
-```
-pending_review → approved  ✓
-pending_review → rejected  ✓
-approved       → rejected  ✓  (revoke)
-rejected       → approved  ✓  (revoke)
-any            → pending   ✗  (403 INVALID_TRANSITION)
-approved       → approved  ✗  (409 ALREADY_APPROVED)
-rejected       → rejected  ✗  (409 ALREADY_REJECTED)
-```
-
 | Method | Path | Deskripsi |
 |---|---|---|
-| `GET` | `/api/admin/submissions` | Daftar submission (filter + paginasi + ringkasan status) |
-| `GET` | `/api/admin/submissions/:id` | Detail submission lengkap + riwayat review |
-| `GET` | `/api/admin/submissions/:id/download` | Download file ZIP submission (audit log otomatis) |
+| `GET` | `/api/admin/submissions` | Daftar submission |
+| `GET` | `/api/admin/submissions/:id` | Detail submission + riwayat review |
+| `GET` | `/api/admin/submissions/:id/download` | Download file ZIP |
 | `POST` | `/api/admin/submissions/:id/approve` | Setujui submission |
 | `POST` | `/api/admin/submissions/:id/reject` | Tolak submission |
-| `GET` | `/api/admin/submissions/queue/stats` | Statistik antrian (pending, oldest, avg processing time) |
-
-**Query params `GET /api/admin/submissions`:**
-
-| Param | Type | Deskripsi |
-|---|---|---|
-| `status` | string | `pending_review` / `approved` / `rejected` |
-| `project_id` | UUID | Filter per project |
-| `user_id` | UUID | Filter per user |
-| `role_id` | UUID | Filter per career role |
-| `from_date` | date | Filter `submitted_at >=` (format: `YYYY-MM-DD`) |
-| `to_date` | date | Filter `submitted_at <=` |
-| `page` | int | Halaman (default: 1) |
-| `per_page` | int | Per halaman (default: 20, max: 100) |
-| `sort` | string | `submitted_at` (default) / `reviewed_at` |
-
-**Request body `POST .../approve`:**
-
-```json
-{ "reviewer_notes": "Submission sudah memenuhi semua kriteria." }
-```
-
-> Minimum 10 karakter untuk approve, 20 karakter untuk reject. Semua HTML di-strip otomatis (ammonia).
-
-**Response `POST .../approve` / `.../reject`:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "submission_id": "...",
-    "status": "approved",
-    "reviewed_at": "2026-05-23T11:41:19Z",
-    "reviewer_notes": "Submission sudah memenuhi semua kriteria.",
-    "user": { "id": "...", "name": "Budi", "email": "budi@example.com" },
-    "project": { "id": "...", "title": "Capstone Project: Web App Lengkap" }
-  }
-}
-```
-
-**Response `GET .../queue/stats`:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "pending_count": 5,
-    "oldest_pending_hours": 12.4,
-    "avg_processing_hours": 3.2
-  }
-}
-```
+| `GET` | `/api/admin/submissions/queue/stats` | Statistik antrian |
 
 ---
 
-## Test dengan curl
+## Tech Stack
 
-### Register
-
-```bash
-curl -s -X POST http://localhost:3002/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"secret123","name":"Budi"}' | jq
-```
-
-Response `201`:
-```json
-{
-  "success": true,
-  "data": {
-    "token": "<jwt>",
-    "user": { "id": "...", "email": "user@example.com", "name": "Budi", "role": "user", "created_at": "..." }
-  }
-}
-```
-
-### Login
-
-```bash
-curl -s -X POST http://localhost:3002/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"secret123"}' | jq
-```
-
-### Me (protected)
-
-```bash
-TOKEN="<token dari login>"
-
-curl -s http://localhost:2/api/auth/me \
-  -H "Authorization: Bearer $TOKEN" | jq
-```
-
-### Error response format
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "UNAUTHORIZED",
-    "message": "Invalid or expired token"
-  }
-}
-```
-
-### Admin — Submission review lifecycle (curl)
-
-```bash
-ADMIN_TOKEN="<token admin>"
-
-# 1. Lihat antrian pending
-curl -s "http://localhost:3002/api/admin/submissions?status=pending_review" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" | jq '.data.summary, .data.submissions[0].id'
-
-# 2. Statistik antrian
-curl -s "http://localhost:3002/api/admin/submissions/queue/stats" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" | jq
-
-# 3. Detail submission
-SUB_ID="<submission_id dari langkah 1>"
-curl -s "http://localhost:3002/api/admin/submissions/$SUB_ID" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" | jq '.data | {status, user: .user.name, history: .review_history}'
-
-# 4. Download file ZIP
-curl -s "http://localhost:3002/api/admin/submissions/$SUB_ID/download" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -o submission.zip
-# Content-Disposition header berisi nama file asli (RFC 5987 UTF-8 encoded)
-
-# 5. Setujui
-curl -s -X POST "http://localhost:3002/api/admin/submissions/$SUB_ID/approve" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"reviewer_notes":"Submission sudah memenuhi semua kriteria. Kerja bagus!"}' | jq
-
-# 6. Approve lagi → 409 ALREADY_APPROVED
-curl -s -X POST "http://localhost:3002/api/admin/submissions/$SUB_ID/approve" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"reviewer_notes":"Coba approve lagi"}' | jq
-# → {"success":false,"error":{"code":"ALREADY_APPROVED","message":"..."}}
-
-# 7. Cabut persetujuan (revoke) → reject setelah approved
-curl -s -X POST "http://localhost:3002/api/admin/submissions/$SUB_ID/reject" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"reviewer_notes":"Ditemukan masalah — mohon perbaiki dan submit ulang project kamu."}' | jq
-
-# 8. User bisa cek status via dashboard
-USER_TOKEN="<token user>"
-curl -s "http://localhost:3002/api/dashboard" \
-  -H "Authorization: Bearer $USER_TOKEN" | jq '.data.project_submission'
-# next_action: "SUBMIT_PROJECT" (rejected) atau "ALL_DONE" (approved)
-```
-
----
-
-### Admin — Module lifecycle (curl)
-
-```bash
-ADMIN_TOKEN="<token admin>"
-
-# 1. Buat career role dulu (butuh role sebelum buat modul)
-ROLE_ID=$(curl -s -X POST http://localhost:3002/api/admin/roles \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"code":"backend_dev","name":"Backend Developer","description":"Jalur karir backend"}' \
-  | jq -r '.data.id')
-
-# 2. Daftar modul
-curl -s "http://localhost:3002/api/admin/modules?role_id=$ROLE_ID" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" | jq
-
-# 3. Buat modul baru
-MODULE_ID=$(curl -s -X POST http://localhost:3002/api/admin/modules \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "{\"role_id\":\"$ROLE_ID\",\"title\":\"Dasar HTTP\",\"description\":\"HTTP fundamentals\"}" \
-  | jq -r '.data.id')
-
-# 4. Update modul
-curl -s -X PATCH "http://localhost:3002/api/admin/modules/$MODULE_ID" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Dasar HTTP & REST","description":"HTTP + REST API fundamentals"}' | jq
-
-# 5. Unpublish (soft delete) — tidak perlu force jika belum ada user progress
-curl -s -X DELETE "http://localhost:3002/api/admin/modules/$MODULE_ID" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" | jq
-# → 200 {message: "Module unpublished"}
-
-# 5b. Jika ada user yang sudah pernah quiz di modul ini, server akan menolak:
-# → 409 {code: "REQUIRES_FORCE", affected_count: 5}
-# Gunakan ?force=true untuk hard delete:
-curl -s -X DELETE "http://localhost:3002/api/admin/modules/$MODULE_ID?force=true" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" | jq
-# → 200 {message: "Module deleted permanently"}
-
-# 6. Restore (publish kembali) — jika belum dihapus permanen
-curl -s -X POST "http://localhost:3002/api/admin/modules/$MODULE_ID/restore" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" | jq
-
-# 7. Force flag — response 409 REQUIRES_FORCE example:
-# {
-#   "success": false,
-#   "error": {
-#     "code": "REQUIRES_FORCE",
-#     "message": "Module has 3 users with progress. Add ?force=true to delete permanently.",
-#     "affected_count": 3
-#   }
-# }
-```
+| Layer | Library |
+|---|---|
+| HTTP | axum 0.7 |
+| Async runtime | tokio |
+| Database | PostgreSQL via sqlx 0.8 (hosted on Neon) |
+| Auth | JWT (jsonwebtoken) + Argon2 |
+| Validation | validator |
+| Sanitization | ammonia (HTML strip) |
+| Error handling | thiserror + anyhow |
+| Logging | tracing + tracing-subscriber |
+| API Docs | utoipa 5 + Scalar UI + Swagger UI |
 
 ---
 
@@ -605,45 +299,19 @@ src/
 │   ├── jwt.rs           # create/verify token
 │   ├── password.rs      # argon2 hash/verify
 │   ├── pagination.rs    # PaginationQuery + PaginatedResponse
-│   ├── sanitization.rs  # sanitize_plain_text (ammonia HTML strip + length check)
+│   ├── sanitization.rs  # sanitize_plain_text
 │   └── response.rs      # ApiResponse<T> wrapper
 ├── db/pool.rs           # PgPool setup
 └── features/
     ├── auth/            # register · login · refresh · logout · me
-    ├── user/            # profil user (get/update)
-    ├── quiz/            # role quiz (questions · submit · result)
-    ├── learning/        # modules · submaterials · mini quiz · final quiz · gating
+    ├── user/            # profil user
+    ├── quiz/            # role quiz
+    ├── learning/        # modules · submaterials · mini quiz · final quiz
     ├── project/         # submit ZIP · download · review status
     ├── dashboard/       # summary · recent activities · next action
     └── admin/
-        ├── audit/       # audit trail (entity · dto · repository · service)
-        ├── user/        # CRUD users · deactivate · activate · audit logs
-        ├── content/     # Content CRUD (role · module · submaterial · mini/final/pre quiz · project)
-        └── submission/  # Review queue · download · approve/reject · state machine · audit dual-write
+        ├── audit/       # audit trail
+        ├── user/        # CRUD users
+        ├── content/     # Content CRUD
+        └── submission/  # Review queue · approve/reject
 ```
-
-Setiap feature mengikuti pola:
-```
-feature/
-├── mod.rs
-├── routes.rs      → Router definition only
-├── handler.rs     → HTTP layer (extract → call service → return)
-├── service.rs     → business logic
-├── repository.rs  → DB queries only
-├── dto.rs         → request/response structs + validation
-├── entity.rs      → DB row structs (FromRow)
-└── error.rs       → feature error → AppError conversion
-```
-
----
-
-## Compile-time query checking (opsional)
-
-Untuk mengaktifkan `sqlx::query_as!` macro dengan compile-time verification:
-
-```bash
-# Pastikan DB sudah up dan migration sudah dijalankan
-cargo sqlx prepare
-```
-
-Ini akan membuat folder `.sqlx/` yang bisa di-commit agar CI bisa build tanpa DB live (`SQLX_OFFLINE=true`).
