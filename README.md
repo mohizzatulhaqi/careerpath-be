@@ -161,17 +161,77 @@ UPDATE users SET password_hash = '...' WHERE id = '00000000-0000-0000-0000-00000
 
 ## Endpoints
 
-### Auth
+> Semua endpoint yang butuh login menggunakan header `Authorization: Bearer <token>`.
+
+### Auth (`/api/auth`)
 
 | Method | Path | Auth | Deskripsi |
 |---|---|---|---|
 | `POST` | `/api/auth/register` | ✗ | Daftar akun baru |
-| `POST` | `/api/auth/login` | ✗ | Login, dapat JWT |
-| `GET` | `/api/auth/me` | ✓ Bearer | Profil user yang login |
+| `POST` | `/api/auth/login` | ✗ | Login, dapat access + refresh token |
+| `POST` | `/api/auth/refresh` | ✗ | Perbarui access token pakai refresh token |
+| `POST` | `/api/auth/logout` | ✓ | Logout, invalidate refresh token |
+| `GET` | `/api/auth/me` | ✓ | Profil user yang sedang login |
 
-### Admin — User Management (role: admin)
+---
 
-Semua endpoint `/api/admin/*` memerlukan Bearer token dengan role `admin`.
+### Pre-Quiz — Role Determining (`/api/quiz`)
+
+Digunakan user untuk menentukan career role sebelum mulai belajar.
+
+| Method | Path | Auth | Deskripsi |
+|---|---|---|---|
+| `GET` | `/api/quiz/questions` | ✓ | Ambil semua soal pre-quiz |
+| `POST` | `/api/quiz/attempts` | ✓ | Mulai sesi attempt baru |
+| `POST` | `/api/quiz/attempts/:id/answers` | ✓ | Simpan jawaban per soal |
+| `POST` | `/api/quiz/attempts/:id/submit` | ✓ | Submit attempt, dapatkan hasil role |
+| `GET` | `/api/quiz/attempts/:id/result` | ✓ | Lihat hasil attempt |
+| `GET` | `/api/quiz/history` | ✓ | Riwayat semua attempt user |
+
+---
+
+### Learning (`/api/learning`)
+
+| Method | Path | Auth | Deskripsi |
+|---|---|---|---|
+| `GET` | `/api/learning/modules` | ✓ | Daftar modul sesuai role user |
+| `GET` | `/api/learning/modules/:id` | ✓ | Detail modul |
+| `GET` | `/api/learning/modules/:id/quiz` | ✓ | Soal final quiz modul |
+| `POST` | `/api/learning/modules/:id/quiz/submit` | ✓ | Submit jawaban final quiz |
+| `GET` | `/api/learning/modules/:id/quiz/history` | ✓ | Riwayat attempt final quiz |
+| `GET` | `/api/learning/submaterials/:id` | ✓ | Detail submaterial |
+| `POST` | `/api/learning/submaterials/:id/complete` | ✓ | Tandai submaterial selesai dibaca |
+| `GET` | `/api/learning/submaterials/:id/quiz` | ✓ | Soal mini quiz submaterial |
+| `POST` | `/api/learning/submaterials/:id/quiz/submit` | ✓ | Submit jawaban mini quiz |
+| `GET` | `/api/learning/progress` | ✓ | Progress belajar user (per modul & submaterial) |
+
+---
+
+### Projects (`/api/projects`)
+
+| Method | Path | Auth | Deskripsi |
+|---|---|---|---|
+| `GET` | `/api/projects/me` | ✓ | Project milik user (sesuai role) |
+| `GET` | `/api/projects/:id` | ✓ | Detail project |
+| `POST` | `/api/projects/:id/submit` | ✓ | Submit project (upload ZIP, maks 25 MB) |
+| `GET` | `/api/projects/:id/submissions` | ✓ | Daftar submission user untuk project ini |
+| `GET` | `/api/projects/submissions/:submission_id/download` | ✓ | Download file ZIP submission |
+
+---
+
+### Dashboard (`/api/dashboard`)
+
+| Method | Path | Auth | Deskripsi |
+|---|---|---|---|
+| `GET` | `/api/dashboard` | ✓ | Ringkasan progress, role, dan next action |
+| `GET` | `/api/dashboard/learning-summary` | ✓ | Ringkasan modul & submaterial yang sudah selesai |
+| `GET` | `/api/dashboard/activity` | ✓ | Log aktivitas terbaru user |
+
+---
+
+### Admin — User Management (`/api/admin`)
+
+> Semua endpoint `/api/admin/*` memerlukan Bearer token dengan role `admin`.
 
 | Method | Path | Deskripsi |
 |---|---|---|
@@ -185,7 +245,7 @@ Semua endpoint `/api/admin/*` memerlukan Bearer token dengan role `admin`.
 
 ---
 
-### Admin — Content Management (role: admin)
+### Admin — Content Management (`/api/admin`)
 
 #### Roles
 
@@ -208,6 +268,7 @@ Semua endpoint `/api/admin/*` memerlukan Bearer token dengan role `admin`.
 | `PATCH` | `/api/admin/modules/:id` | Update modul |
 | `DELETE` | `/api/admin/modules/:id` | Soft delete. `?force=true` → hard delete |
 | `POST` | `/api/admin/modules/:id/restore` | Publikasikan kembali modul |
+| `GET` | `/api/admin/modules/:module_id/final-quiz` | Daftar soal final quiz modul |
 
 #### Submaterials
 
@@ -219,8 +280,9 @@ Semua endpoint `/api/admin/*` memerlukan Bearer token dengan role `admin`.
 | `PATCH` | `/api/admin/submaterials/:id` | Update submaterial |
 | `DELETE` | `/api/admin/submaterials/:id` | Soft delete. `?force=true` → hard delete |
 | `POST` | `/api/admin/submaterials/:id/restore` | Publish kembali |
+| `GET` | `/api/admin/submaterials/:submaterial_id/quiz` | Daftar soal mini quiz |
 
-#### Quiz Questions
+#### Mini Quiz Questions (per Submaterial)
 
 | Method | Path | Deskripsi |
 |---|---|---|
@@ -228,10 +290,20 @@ Semua endpoint `/api/admin/*` memerlukan Bearer token dengan role `admin`.
 | `PATCH` | `/api/admin/submaterial-quiz-questions/:id` | Update soal |
 | `PATCH` | `/api/admin/submaterial-quiz-questions/:id/options` | Ganti semua opsi |
 | `DELETE` | `/api/admin/submaterial-quiz-questions/:id` | Hapus soal |
+
+#### Final Quiz Questions (per Module)
+
+| Method | Path | Deskripsi |
+|---|---|---|
 | `POST` | `/api/admin/module-quiz-questions` | Tambah soal final quiz |
 | `PATCH` | `/api/admin/module-quiz-questions/:id` | Update soal |
 | `PATCH` | `/api/admin/module-quiz-questions/:id/options` | Ganti semua opsi |
 | `DELETE` | `/api/admin/module-quiz-questions/:id` | Hapus soal |
+
+#### Pre-Quiz Questions (Role Determining)
+
+| Method | Path | Deskripsi |
+|---|---|---|
 | `GET` | `/api/admin/pre-quiz-questions` | Daftar soal pre-quiz |
 | `POST` | `/api/admin/pre-quiz-questions` | Tambah soal pre-quiz |
 | `GET` | `/api/admin/pre-quiz-questions/:id` | Detail soal |
@@ -253,16 +325,16 @@ Semua endpoint `/api/admin/*` memerlukan Bearer token dengan role `admin`.
 
 ---
 
-### Admin — Submission Review (role: admin)
+### Admin — Submission Review (`/api/admin`)
 
 | Method | Path | Deskripsi |
 |---|---|---|
-| `GET` | `/api/admin/submissions` | Daftar submission |
+| `GET` | `/api/admin/submissions/queue/stats` | Statistik antrian (pending, oldest, avg time) |
+| `GET` | `/api/admin/submissions` | Daftar submission (filter + paginasi) |
 | `GET` | `/api/admin/submissions/:id` | Detail submission + riwayat review |
-| `GET` | `/api/admin/submissions/:id/download` | Download file ZIP |
+| `GET` | `/api/admin/submissions/:id/download` | Download file ZIP submission |
 | `POST` | `/api/admin/submissions/:id/approve` | Setujui submission |
 | `POST` | `/api/admin/submissions/:id/reject` | Tolak submission |
-| `GET` | `/api/admin/submissions/queue/stats` | Statistik antrian |
 
 ---
 
