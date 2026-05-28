@@ -21,4 +21,7 @@ pub fn router() -> Router<Arc<AppState>> {
 
         // ── Submission review (Bagian 3) ───────────────────────────────────
         .merge(crate::features::admin::submission::routes::router())
+
+        // ── Certificate management ─────────────────────────────────────────
+        .nest("/certificates", crate::features::certificate::routes::admin_router())
 }

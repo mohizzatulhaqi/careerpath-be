@@ -37,11 +37,13 @@ pub fn create_app(state: Arc<AppState>) -> Router {
 
 fn api_router() -> Router<Arc<AppState>> {
     Router::new()
-        .nest("/auth",      features::auth::routes::router())
-        .nest("/users",     features::user::routes::router())
-        .nest("/quiz",      features::quiz::routes::router())
-        .nest("/learning",  features::learning::routes::router())
-        .nest("/projects",  features::project::routes::router())
-        .nest("/dashboard", features::dashboard::routes::router())
-        .nest("/admin",     features::admin::routes::router())
+        .nest("/auth",         features::auth::routes::router())
+        .nest("/users",        features::user::routes::router())
+        .nest("/quiz",         features::quiz::routes::router())
+        .nest("/learning",     features::learning::routes::router())
+        .nest("/projects",     features::project::routes::router())
+        .nest("/dashboard",    features::dashboard::routes::router())
+        .nest("/admin",        features::admin::routes::router())
+        .nest("/certificates", features::certificate::routes::router())
+        .nest("/verify",       features::certificate::routes::verify_router())
 }

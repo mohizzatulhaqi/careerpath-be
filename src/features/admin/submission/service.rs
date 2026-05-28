@@ -14,6 +14,7 @@ use super::{
 };
 use crate::{
     features::admin::audit::service as audit_svc,
+    features::certificate::service::CertificateService,
     features::project::storage::Storage,
     shared::sanitization,
 };
@@ -239,9 +240,18 @@ impl<'a> AdminSubmissionService<'a> {
         .context("audit log")
         .map_err(SubmissionError::Internal)?;
 
+        // 5. Auto-issue certificate if this is an approval
+        let issued_cert = if new_status == "approved" {
+            CertificateService::try_issue(&mut tx, admin_id, current.user_id)
+                .await
+                .map_err(|e| SubmissionError::Internal(anyhow::anyhow!("certificate: {e}")))?
+        } else {
+            None
+        };
+
         tx.commit().await.map_err(SubmissionError::Database)?;
 
-        // 5. Build response (re-query brief info outside tx, lock released)
+        // 6. Build response (re-query brief info outside tx, lock released)
         let (user, project) = repository::get_review_brief(self.db, submission_id)
             .await
             .map_err(SubmissionError::Internal)?
@@ -254,6 +264,9 @@ impl<'a> AdminSubmissionService<'a> {
             reviewer_notes: notes,
             user,
             project,
+            certificate_issued: issued_cert.is_some(),
+            certificate_id: issued_cert.as_ref().map(|c| c.id),
+            certificate_code: issued_cert.map(|c| c.certificate_code),
         })
     }
 

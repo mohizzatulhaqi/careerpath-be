@@ -112,6 +112,7 @@ Salin `.env.example` ke `.env` dan isi variabel berikut:
 | `REFRESH_TOKEN_EXPIRES_IN` | TTL refresh token dalam detik (default: 604800 = 7 hari) |
 | `SERVER_PORT` | Port server (default: 3002) |
 | `RUST_LOG` | Log level (default: `info,career_path_be=debug`) |
+| `APP_BASE_URL` | Base URL publik server (default: `http://localhost:3002`) — digunakan untuk verification URL di sertifikat |
 
 ---
 
@@ -333,8 +334,92 @@ Digunakan user untuk menentukan career role sebelum mulai belajar.
 | `GET` | `/api/admin/submissions` | Daftar submission (filter + paginasi) |
 | `GET` | `/api/admin/submissions/:id` | Detail submission + riwayat review |
 | `GET` | `/api/admin/submissions/:id/download` | Download file ZIP submission |
-| `POST` | `/api/admin/submissions/:id/approve` | Setujui submission |
+| `POST` | `/api/admin/submissions/:id/approve` | Setujui submission — **otomatis issue sertifikat jika eligible** |
 | `POST` | `/api/admin/submissions/:id/reject` | Tolak submission |
+
+---
+
+### Certificate (`/api/certificates`, `/api/verify`)
+
+Sertifikat diterbitkan **otomatis** saat admin menyetujui final project, jika user sudah memenuhi semua syarat eligibility.
+
+**Syarat Eligibility:**
+- ✅ User sudah menyelesaikan pre-quiz (memiliki role)
+- ✅ Semua modul role sudah lulus final quiz (completed == total)
+- ✅ Ada satu project submission dengan status `approved`
+
+#### User Endpoints
+
+| Method | Path | Auth | Deskripsi |
+|---|---|---|---|
+| `GET` | `/api/certificates/me` | ✓ | Daftar sertifikat milik user |
+| `GET` | `/api/certificates/me/:id` | ✓ | Detail sertifikat + modul selesai + QR code |
+| `GET` | `/api/certificates/me/:id/download.pdf` | ✓ | Download sertifikat PDF (A4 landscape) |
+
+#### Public Endpoint (tanpa login)
+
+| Method | Path | Auth | Deskripsi |
+|---|---|---|---|
+| `GET` | `/api/verify/:code` | ✗ | Verifikasi keaslian sertifikat via kode |
+
+Response verifikasi:
+
+```json
+{
+  "success": true,
+  "data": {
+    "is_valid": true,
+    "status": "valid",
+    "message": "Certificate valid",
+    "certificate": {
+      "certificate_code": "CERT-2026-XK7M3PQR",
+      "recipient_name": "Budi Santoso",
+      "role_name": "Frontend Developer",
+      "issued_at": "2026-05-28T10:00:00Z",
+      "modules_completed_count": 5
+    }
+  }
+}
+```
+
+`status` bisa: `"valid"` | `"revoked"` | `"not_found"`
+
+#### Admin Endpoints
+
+> Memerlukan Bearer token dengan role `admin`.
+
+| Method | Path | Deskripsi |
+|---|---|---|
+| `GET` | `/api/admin/certificates` | Daftar semua sertifikat (filter + paginasi) |
+| `POST` | `/api/admin/certificates/:id/revoke` | Cabut sertifikat dengan alasan |
+| `POST` | `/api/admin/certificates/:id/restore` | Pulihkan sertifikat yang dicabut |
+
+**Filter `GET /api/admin/certificates`:**
+
+| Query param | Tipe | Deskripsi |
+|---|---|---|
+| `page` | `int` | Halaman (default: 1) |
+| `per_page` | `int` | Item per halaman (default: 20, maks: 100) |
+| `user_id` | `uuid` | Filter by user |
+| `role_id` | `uuid` | Filter by role |
+| `is_revoked` | `bool` | Filter sertifikat aktif / dicabut |
+| `from_date` | `timestamptz` | Tanggal terbit mulai |
+| `to_date` | `timestamptz` | Tanggal terbit sampai |
+| `search` | `string` | Cari by `certificate_code` atau `recipient_name` |
+
+**Response `POST .../approve` saat sertifikat diterbitkan:**
+
+```json
+{
+  "submission_id": "...",
+  "status": "approved",
+  "certificate_issued": true,
+  "certificate_id": "uuid...",
+  "certificate_code": "CERT-2026-XK7M3PQR",
+  "user": { ... },
+  "project": { ... }
+}
+```
 
 ---
 
@@ -351,6 +436,8 @@ Digunakan user untuk menentukan career role sebelum mulai belajar.
 | Error handling | thiserror + anyhow |
 | Logging | tracing + tracing-subscriber |
 | API Docs | utoipa 5 + Scalar UI + Swagger UI |
+| PDF Generation | printpdf 0.7 (built-in Helvetica, QR embed) |
+| QR Code | qrcode 0.14 + image 0.25 (PNG encoder) |
 
 ---
 
@@ -368,11 +455,12 @@ src/
 │   ├── auth.rs          # AuthUser extractor (JWT)
 │   └── role_guard.rs    # AdminUser extractor
 ├── shared/
-│   ├── jwt.rs           # create/verify token
-│   ├── password.rs      # argon2 hash/verify
-│   ├── pagination.rs    # PaginationQuery + PaginatedResponse
-│   ├── sanitization.rs  # sanitize_plain_text
-│   └── response.rs      # ApiResponse<T> wrapper
+│   ├── jwt.rs              # create/verify token
+│   ├── password.rs         # argon2 hash/verify
+│   ├── pagination.rs       # PaginationQuery + PaginatedResponse
+│   ├── sanitization.rs     # sanitize_plain_text
+│   ├── certificate_code.rs # generate "CERT-YYYY-XXXXXXXX"
+│   └── response.rs         # ApiResponse<T> wrapper
 ├── db/pool.rs           # PgPool setup
 └── features/
     ├── auth/            # register · login · refresh · logout · me
@@ -381,9 +469,20 @@ src/
     ├── learning/        # modules · submaterials · mini quiz · final quiz
     ├── project/         # submit ZIP · download · review status
     ├── dashboard/       # summary · recent activities · next action
+    ├── certificate/     # auto-issue · PDF · QR · public verify · admin revoke
+    │   ├── entity.rs    # Certificate struct (DB row)
+    │   ├── dto.rs       # Request/response DTOs
+    │   ├── error.rs     # CertificateError → AppError
+    │   ├── eligibility.rs  # check_eligibility() — pure function, unit-tested
+    │   ├── qr.rs        # generate_qr_png / generate_qr_data_url
+    │   ├── pdf.rs       # generate_pdf() → Vec<u8> (A4 landscape)
+    │   ├── repository.rs
+    │   ├── service.rs   # try_issue (atomic) · CRUD
+    │   ├── handler.rs
+    │   └── routes.rs
     └── admin/
         ├── audit/       # audit trail
         ├── user/        # CRUD users
         ├── content/     # Content CRUD
-        └── submission/  # Review queue · approve/reject
+        └── submission/  # Review queue · approve/reject · auto-issue cert
 ```

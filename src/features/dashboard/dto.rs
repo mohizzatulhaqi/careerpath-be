@@ -13,6 +13,19 @@ pub struct DashboardResponse {
     pub final_project: FinalProjectSummaryDto,
     pub next_action: NextActionDto,
     pub recent_activities: Vec<ActivityDto>,
+    pub certificates: Vec<CertificateBriefDto>,
+}
+
+// ── Section: certificates ──────────────────────────────────────────────────
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct CertificateBriefDto {
+    pub id: uuid::Uuid,
+    pub certificate_code: String,
+    pub role_name: String,
+    pub issued_at: DateTime<Utc>,
+    pub is_revoked: bool,
+    pub verification_url: String,
 }
 
 // ── Section: user ──────────────────────────────────────────────────────────

@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT COUNT(DISTINCT mqa.module_id)\n        FROM module_quiz_attempts mqa\n        JOIN learning_modules lm ON lm.id = mqa.module_id\n        WHERE mqa.user_id = $1 AND mqa.passed = true AND lm.role_id = $2\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "6137b959d7c866f9c59db9101be7ffb2606c0659720eef9a63383ddba070af0f"
+}

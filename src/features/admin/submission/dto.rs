@@ -156,6 +156,9 @@ pub struct ReviewResultDto {
     pub reviewer_notes: String,
     pub user: UserBriefDto,
     pub project: ProjectBriefDto,
+    pub certificate_issued: bool,
+    pub certificate_id: Option<Uuid>,
+    pub certificate_code: Option<String>,
 }
 
 // ── Queue stats ───────────────────────────────────────────────────────────────

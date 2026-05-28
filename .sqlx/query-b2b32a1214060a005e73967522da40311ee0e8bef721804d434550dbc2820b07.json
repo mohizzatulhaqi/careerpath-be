@@ -1,0 +1,101 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            c.id, c.certificate_code, c.recipient_name, c.user_id,\n            u.email AS user_email,\n            c.role_name, c.role_code, c.issued_at,\n            c.modules_completed_count, c.is_revoked,\n            c.revoked_at, c.revocation_reason,\n            COUNT(*) OVER() AS \"total!: i64\"\n        FROM certificates c\n        JOIN users u ON u.id = c.user_id\n        WHERE ($1::uuid  IS NULL OR c.user_id  = $1)\n          AND ($2::uuid  IS NULL OR c.role_id  = $2)\n          AND ($3::bool  IS NULL OR c.is_revoked = $3)\n          AND ($4::timestamptz IS NULL OR c.issued_at >= $4)\n          AND ($5::timestamptz IS NULL OR c.issued_at <= $5)\n          AND ($6::text  IS NULL OR c.certificate_code ILIKE $6 OR c.recipient_name ILIKE $6)\n        ORDER BY c.issued_at DESC\n        LIMIT $7 OFFSET $8\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "certificate_code",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "recipient_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "user_email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "role_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "role_code",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "issued_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "modules_completed_count",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "is_revoked",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 10,
+        "name": "revoked_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 11,
+        "name": "revocation_reason",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 12,
+        "name": "total!: i64",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Bool",
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      null
+    ]
+  },
+  "hash": "b2b32a1214060a005e73967522da40311ee0e8bef721804d434550dbc2820b07"
+}

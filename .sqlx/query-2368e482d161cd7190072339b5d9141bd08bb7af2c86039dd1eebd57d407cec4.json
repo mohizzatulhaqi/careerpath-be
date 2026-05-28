@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE certificates\n        SET is_revoked = true, revoked_at = NOW(), revoked_by = $2, revocation_reason = $3\n        WHERE id = $1\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2368e482d161cd7190072339b5d9141bd08bb7af2c86039dd1eebd57d407cec4"
+}

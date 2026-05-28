@@ -14,6 +14,8 @@ pub struct Config {
     pub storage_root: PathBuf,
     /// Maximum allowed upload size in bytes (default: 26_214_400 = 25 MB)
     pub max_upload_size_bytes: u64,
+    /// Base URL used in certificate verification links (e.g. "https://careerpath.example.com")
+    pub app_base_url: String,
 }
 
 impl Config {
@@ -40,6 +42,8 @@ impl Config {
                 .unwrap_or_else(|_| "26214400".to_string())
                 .parse()
                 .context("MAX_UPLOAD_SIZE_BYTES must be a positive integer")?,
+            app_base_url: std::env::var("APP_BASE_URL")
+                .unwrap_or_else(|_| "http://localhost:3002".to_string()),
         })
     }
 }

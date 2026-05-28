@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT lm.id, lm.title,\n               (SELECT MAX(mqa.created_at)\n                FROM module_quiz_attempts mqa\n                WHERE mqa.module_id = lm.id AND mqa.user_id = $2 AND mqa.passed = true\n               ) AS completion_date\n        FROM learning_modules lm\n        WHERE lm.role_id = $1 AND lm.is_published = true\n        ORDER BY lm.order_index\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "completion_date",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "bc07abf7f4e077c572077f68fbd5ac2639b0e9fd68e5b7f524331d706bbf56d7"
+}

@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT ps.id\n        FROM project_submissions ps\n        JOIN projects p ON p.id = ps.project_id\n        WHERE ps.user_id = $1 AND p.role_id = $2 AND ps.status = 'approved'\n        ORDER BY ps.reviewed_at DESC\n        LIMIT 1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1cb0665897a2bf8ceba100d72d7fd8139b4aec7a56e5ec4a420dbe3b36f878f0"
+}

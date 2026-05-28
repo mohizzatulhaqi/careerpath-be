@@ -11,6 +11,10 @@ path = "src/main.rs"
 name = "gen_password_hash"
 path = "src/bin/gen_password_hash.rs"
 
+[[bin]]
+name = "preview_certificate"
+path = "src/bin/preview_certificate.rs"
+
 [lib]
 name = "career_path_be"
 path = "src/lib.rs"
@@ -60,6 +64,13 @@ bytes = "1"
 ammonia = "4"
 
 percent-encoding = "2"
+
+# Certificate feature
+printpdf = { version = "0.7", features = ["embedded_images"] }  # PDF generation with image embedding
+qrcode = "0.14"          # QR code generation
+image = { version = "0.25", default-features = false, features = ["png"] }
+rand = "0.8"
+base64 = "0.22"
 
 [profile.release]
 strip = true        # strip debug symbols → smaller binary

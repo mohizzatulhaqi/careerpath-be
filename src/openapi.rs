@@ -124,6 +124,15 @@ impl Modify for SecurityAddon {
         crate::features::admin::content::pre_quiz::handler::replace_options,
         crate::features::admin::content::pre_quiz::handler::deactivate_question,
         crate::features::admin::content::pre_quiz::handler::restore_question,
+        // Certificates
+        crate::features::certificate::handler::list_my_certificates,
+        crate::features::certificate::handler::get_my_certificate,
+        crate::features::certificate::handler::download_certificate_pdf,
+        crate::features::certificate::handler::verify_certificate,
+        // Admin - Certificates
+        crate::features::certificate::handler::admin_list_certificates,
+        crate::features::certificate::handler::admin_revoke_certificate,
+        crate::features::certificate::handler::admin_restore_certificate,
         // Admin - Content - Projects
         crate::features::admin::content::project::handler::list_projects,
         crate::features::admin::content::project::handler::get_project,
@@ -294,6 +303,21 @@ impl Modify for SecurityAddon {
         crate::features::admin::content::submaterial::dto::AdminSubmaterialFilter,
         crate::features::admin::content::submaterial::dto::CreateSubmaterialRequest,
         crate::features::admin::content::submaterial::dto::UpdateSubmaterialRequest,
+        // Certificate
+        crate::features::certificate::dto::CertificateSummaryDto,
+        crate::features::certificate::dto::CertificateListResponse,
+        crate::features::certificate::dto::CompletedModuleDto,
+        crate::features::certificate::dto::FinalProjectAchievementDto,
+        crate::features::certificate::dto::AchievementDto,
+        crate::features::certificate::dto::CertificateDetailDto,
+        crate::features::certificate::dto::PublicCertificateDto,
+        crate::features::certificate::dto::VerificationResponse,
+        crate::features::certificate::dto::AdminCertificateSummaryDto,
+        crate::features::certificate::dto::AdminCertificateListResponse,
+        crate::features::certificate::dto::AdminCertificateFilter,
+        crate::features::certificate::dto::RevokeRequest,
+        // Dashboard certificate brief
+        crate::features::dashboard::dto::CertificateBriefDto,
         // Admin - Content - Submaterial Quiz
         crate::features::admin::content::submaterial_quiz::dto::AdminQuizOptionDto,
         crate::features::admin::content::submaterial_quiz::dto::QuizOptionInput,
@@ -315,6 +339,8 @@ impl Modify for SecurityAddon {
         (name = "Admin - Audit", description = "Admin audit log management"),
         (name = "Admin - Content", description = "Admin content management"),
         (name = "Admin - Submissions", description = "Admin submission review"),
+        (name = "Certificates", description = "Certificate endpoints"),
+        (name = "Admin - Certificates", description = "Admin certificate management"),
     )
 )]
 pub struct ApiDoc;

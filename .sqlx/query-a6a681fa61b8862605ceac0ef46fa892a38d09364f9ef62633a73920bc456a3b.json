@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT id, certificate_code, role_name, issued_at, is_revoked\n        FROM certificates\n        WHERE user_id = $1\n        ORDER BY issued_at DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "certificate_code",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "role_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "issued_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "is_revoked",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "a6a681fa61b8862605ceac0ef46fa892a38d09364f9ef62633a73920bc456a3b"
+}

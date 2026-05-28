@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT result_role_id\n        FROM quiz_attempts\n        WHERE user_id = $1 AND status = 'submitted'\n        ORDER BY submitted_at DESC\n        LIMIT 1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "result_role_id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "8c504c60843b8a1db28b107ce280c882a6ad0b82e4e6725ec5922a361a13e757"
+}

@@ -30,7 +30,7 @@ pub async fn get_dashboard(
     State(state): State<Arc<AppState>>,
     auth: AuthUser,
 ) -> Result<impl IntoResponse, AppError> {
-    let data = service::get_full_dashboard(&state.db, auth.user_id).await?;
+    let data = service::get_full_dashboard(&state.db, auth.user_id, &state.config.app_base_url).await?;
     Ok(ApiResponse::ok(data))
 }
 

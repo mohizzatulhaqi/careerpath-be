@@ -1,3 +1,4 @@
+pub mod certificate_code;
 pub mod jwt;
 pub mod pagination;
 pub mod password;

@@ -4,10 +4,11 @@ use std::collections::HashSet;
 use uuid::Uuid;
 
 use crate::features::{
+    certificate::repository as cert_repo,
     dashboard::dto::{
-        ActivityDto, ActivityLogResponse, CareerPathSummaryDto, CurrentModuleDto,
-        CurrentModuleInfo, CurrentSubmaterialDto, DashboardResponse, FinalProjectInfo,
-        FinalProjectSummaryDto, LearningSummaryModuleDto, LearningSummaryResponse,
+        ActivityDto, ActivityLogResponse, CareerPathSummaryDto, CertificateBriefDto,
+        CurrentModuleDto, CurrentModuleInfo, CurrentSubmaterialDto, DashboardResponse,
+        FinalProjectInfo, FinalProjectSummaryDto, LearningSummaryModuleDto, LearningSummaryResponse,
         LearningProgressSummaryDto, NextActionDto, ProjectBriefDto, RoleDto, UserSummaryDto,
     },
     learning::{
@@ -410,12 +411,14 @@ async fn build_learning_progress(
 pub async fn get_full_dashboard(
     pool: &PgPool,
     user_id: Uuid,
+    app_base_url: &str,
 ) -> Result<DashboardResponse, crate::error::AppError> {
-    // Parallel: user info + career path + activities
-    let (user_res, career_res, activities_res) = tokio::join!(
+    // Parallel: user info + career path + activities + certificates
+    let (user_res, career_res, activities_res, certs_res) = tokio::join!(
         fetch_user(pool, user_id),
         fetch_career_path(pool, user_id),
         fetch_recent_activities(pool, user_id, 5),
+        cert_repo::list_for_user_brief(pool, user_id),
     );
 
     let user_row = user_res?
@@ -423,6 +426,7 @@ pub async fn get_full_dashboard(
 
     let career_row = career_res?;
     let activities = activities_res?;
+    let cert_rows = certs_res.unwrap_or_default();
 
     // Build career_path section
     let has_taken_quiz = career_row.is_some();
@@ -522,6 +526,18 @@ pub async fn get_full_dashboard(
         .map(|a| ActivityDto { kind: a.kind, title: a.title, detail: a.detail, occurred_at: a.occurred_at })
         .collect();
 
+    let certificates = cert_rows
+        .into_iter()
+        .map(|(id, code, role_name, issued_at, is_revoked)| CertificateBriefDto {
+            id,
+            verification_url: format!("{}/verify/{}", app_base_url, code),
+            certificate_code: code,
+            role_name,
+            issued_at,
+            is_revoked,
+        })
+        .collect();
+
     Ok(DashboardResponse {
         user: UserSummaryDto {
             id: user_row.id,
@@ -534,6 +550,7 @@ pub async fn get_full_dashboard(
         final_project,
         next_action,
         recent_activities,
+        certificates,
     })
 }
 
