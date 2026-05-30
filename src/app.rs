@@ -1,8 +1,8 @@
 use crate::{features, openapi, state::AppState};
-use axum::{http::Method, Router, routing::get};
+use axum::{http::{HeaderValue, Method}, Router, routing::get};
 use std::sync::Arc;
 use tower_http::{
-    cors::{Any, CorsLayer},
+    cors::CorsLayer,
     trace::TraceLayer,
 };
 use tracing::Span;
@@ -10,8 +10,14 @@ use utoipa_scalar::{Scalar, Servable as ScalarServable};
 use utoipa_swagger_ui::SwaggerUi;
 
 pub fn create_app(state: Arc<AppState>) -> Router {
+    let allowed_origins = [
+        "https://skill-up-kel-2.vercel.app".parse::<HeaderValue>().unwrap(),
+        "http://localhost:3000".parse::<HeaderValue>().unwrap(),
+        "http://localhost:5173".parse::<HeaderValue>().unwrap(),
+    ];
+
     let cors = CorsLayer::new()
-        .allow_origin(Any)
+        .allow_origin(allowed_origins)
         .allow_methods([
             Method::GET,
             Method::POST,
@@ -20,7 +26,12 @@ pub fn create_app(state: Arc<AppState>) -> Router {
             Method::DELETE,
             Method::OPTIONS,
         ])
-        .allow_headers(Any);
+        .allow_headers([
+            axum::http::header::AUTHORIZATION,
+            axum::http::header::CONTENT_TYPE,
+            axum::http::header::ACCEPT,
+        ])
+        .allow_credentials(true);
 
     let openapi_spec = openapi::build();
 

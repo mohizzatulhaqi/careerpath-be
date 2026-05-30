@@ -60,12 +60,11 @@ RUN mkdir -p /app/storage && chown -R appuser:appuser /app
 USER appuser
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-    CMD curl --fail --silent http://localhost:${SERVER_PORT:-3002}/health || exit 1
+    CMD curl --fail --silent http://localhost:${PORT:-3002}/health || exit 1
 
 EXPOSE 3002
 
-ENV RUST_LOG=info,career_path_be=info \
-    SERVER_PORT=3002 \
-    STORAGE_ROOT=/app/storage
+ENV RUST_LOG=info,career_path_be=info
+ENV STORAGE_ROOT=/app/storage
 
 CMD ["/app/career-path-be"]

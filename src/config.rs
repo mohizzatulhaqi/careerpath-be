@@ -31,10 +31,12 @@ impl Config {
                 .unwrap_or_else(|_| "604800".to_string())
                 .parse()
                 .context("REFRESH_TOKEN_EXPIRES_IN must be a positive integer")?,
-            server_port: std::env::var("SERVER_PORT")
+            // Render injects PORT; SERVER_PORT is the local fallback
+            server_port: std::env::var("PORT")
+                .or_else(|_| std::env::var("SERVER_PORT"))
                 .unwrap_or_else(|_| "3000".to_string())
                 .parse()
-                .context("SERVER_PORT must be a valid port number")?,
+                .context("PORT/SERVER_PORT must be a valid port number")?,
             storage_root: PathBuf::from(
                 std::env::var("STORAGE_ROOT").unwrap_or_else(|_| "storage".to_string()),
             ),
