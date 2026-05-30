@@ -106,6 +106,71 @@ pub mod local {
     }
 }
 
+// ── PostgreSQL database implementation ────────────────────────────────────────
+
+pub mod db {
+    use super::*;
+    use sqlx::{PgPool, Row};
+
+    #[derive(Debug, Clone)]
+    pub struct DatabaseStorage {
+        pool: PgPool,
+    }
+
+    impl DatabaseStorage {
+        pub fn new(pool: PgPool) -> Self {
+            Self { pool }
+        }
+    }
+
+    #[async_trait]
+    impl Storage for DatabaseStorage {
+        async fn store(&self, id: Uuid, data: Bytes) -> Result<String, StorageError> {
+            let path = format!("{}.zip", id);
+            sqlx::query(
+                "INSERT INTO project_files (path, data, mime_type)
+                 VALUES ($1, $2, $3)
+                 ON CONFLICT (path) DO UPDATE SET data = EXCLUDED.data",
+            )
+            .bind(&path)
+            .bind(data.as_ref())
+            .bind("application/zip")
+            .execute(&self.pool)
+            .await
+            .map_err(|e| StorageError::Other(e.to_string()))?;
+            Ok(path)
+        }
+
+        async fn retrieve(&self, path: &str) -> Result<StoredFile, StorageError> {
+            let row = sqlx::query(
+                "SELECT data, mime_type FROM project_files WHERE path = $1",
+            )
+            .bind(path)
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(|e| StorageError::Other(e.to_string()))?
+            .ok_or_else(|| StorageError::NotFound(path.to_string()))?;
+
+            let raw: Vec<u8> = row.try_get("data").map_err(|e| StorageError::Other(e.to_string()))?;
+            let mime_type: String = row.try_get("mime_type").map_err(|e| StorageError::Other(e.to_string()))?;
+
+            Ok(StoredFile {
+                data: Bytes::from(raw),
+                mime_type,
+            })
+        }
+
+        async fn delete(&self, path: &str) -> Result<(), StorageError> {
+            sqlx::query("DELETE FROM project_files WHERE path = $1")
+                .bind(path)
+                .execute(&self.pool)
+                .await
+                .map_err(|e| StorageError::Other(e.to_string()))?;
+            Ok(())
+        }
+    }
+}
+
 // ── ZIP validator ─────────────────────────────────────────────────────────────
 
 pub mod validator {

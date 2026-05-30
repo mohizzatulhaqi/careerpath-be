@@ -1,8 +1,8 @@
 use career_path_be::{
     app,
-    config::Config,
+    config::{Config, StorageBackend},
     db::pool,
-    features::project::storage::local::LocalStorage,
+    features::project::storage::{db::DatabaseStorage, local::LocalStorage, Storage},
     state::AppState,
 };
 use std::sync::Arc;
@@ -24,10 +24,25 @@ async fn main() -> anyhow::Result<()> {
     let db = pool::create_pool(&config.database_url).await?;
     let port = config.server_port;
 
-    let storage = Arc::new(
-        LocalStorage::new(config.storage_root.clone())
-            .map_err(|e| anyhow::anyhow!("failed to init storage: {e}"))?,
-    );
+    sqlx::migrate!("./migrations")
+        .run(&db)
+        .await
+        .map_err(|e| anyhow::anyhow!("migration failed: {e}"))?;
+    tracing::info!("Database migrations applied");
+
+    let storage: Arc<dyn Storage> = match config.storage_backend {
+        StorageBackend::Database => {
+            tracing::info!("Storage backend: database (PostgreSQL BYTEA)");
+            Arc::new(DatabaseStorage::new(db.clone()))
+        }
+        StorageBackend::Local => {
+            tracing::info!("Storage backend: local (root={:?})", config.storage_root);
+            Arc::new(
+                LocalStorage::new(config.storage_root.clone())
+                    .map_err(|e| anyhow::anyhow!("failed to init local storage: {e}"))?,
+            )
+        }
+    };
 
     let state = Arc::new(AppState {
         db,
