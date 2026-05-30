@@ -1,5 +1,7 @@
-use crate::{features, openapi, state::AppState};
-use axum::{http::{HeaderValue, Method}, Router, routing::get};
+use crate::{features, middleware, openapi, state::AppState};
+use axum::middleware as axum_middleware;
+use axum::{extract::State, http::{HeaderValue, Method, StatusCode}, response::IntoResponse, Json, Router, routing::get};
+use serde_json::json;
 use std::sync::Arc;
 use tower_http::{
     cors::CorsLayer,
@@ -41,6 +43,7 @@ pub fn create_app(state: Arc<AppState>) -> Router {
                 "request",
                 method = %req.method(),
                 uri = %req.uri().path(),
+                request_id = tracing::field::Empty,
             )
         })
         .on_request(|req: &axum::http::Request<_>, _span: &Span| {
@@ -59,16 +62,31 @@ pub fn create_app(state: Arc<AppState>) -> Router {
         );
 
     Router::new()
-        .route("/health", get(|| async { "ok" }))
+        .route("/health", get(health))
         .nest("/api", api_router())
         .merge(Scalar::with_url("/docs", openapi_spec.clone()))
         .merge(
             SwaggerUi::new("/swagger")
                 .url("/api-docs/openapi.json", openapi_spec),
         )
+        .layer(axum_middleware::from_fn(middleware::request_id::layer))
         .layer(trace_layer)
         .layer(cors)
         .with_state(state)
+}
+
+async fn health(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let db_ok = sqlx::query("SELECT 1")
+        .execute(&state.db)
+        .await
+        .is_ok();
+
+    let status = if db_ok { StatusCode::OK } else { StatusCode::SERVICE_UNAVAILABLE };
+    let body = json!({
+        "status": if db_ok { "ok" } else { "degraded" },
+        "db":     if db_ok { "ok" } else { "unreachable" },
+    });
+    (status, Json(body))
 }
 
 fn api_router() -> Router<Arc<AppState>> {
