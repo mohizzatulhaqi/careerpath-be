@@ -2,6 +2,7 @@
 name = "career-path-be"
 version = "0.1.0"
 edition = "2021"
+default-run = "career-path-be"
 
 [[bin]]
 name = "career-path-be"
