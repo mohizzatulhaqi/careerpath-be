@@ -1,7 +1,11 @@
 use crate::{features, openapi, state::AppState};
 use axum::{http::Method, Router, routing::get};
 use std::sync::Arc;
-use tower_http::{cors::{Any, CorsLayer}, trace::TraceLayer};
+use tower_http::{
+    cors::{Any, CorsLayer},
+    trace::TraceLayer,
+};
+use tracing::Span;
 use utoipa_scalar::{Scalar, Servable as ScalarServable};
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -20,17 +24,38 @@ pub fn create_app(state: Arc<AppState>) -> Router {
 
     let openapi_spec = openapi::build();
 
+    let trace_layer = TraceLayer::new_for_http()
+        .make_span_with(|req: &axum::http::Request<_>| {
+            tracing::info_span!(
+                "request",
+                method = %req.method(),
+                uri = %req.uri().path(),
+            )
+        })
+        .on_request(|req: &axum::http::Request<_>, _span: &Span| {
+            tracing::info!("--> {} {}", req.method(), req.uri().path());
+        })
+        .on_response(
+            |res: &axum::http::Response<_>,
+             latency: std::time::Duration,
+             _span: &Span| {
+                tracing::info!(
+                    "<-- {} {}ms",
+                    res.status().as_u16(),
+                    latency.as_millis()
+                );
+            },
+        );
+
     Router::new()
         .route("/health", get(|| async { "ok" }))
         .nest("/api", api_router())
-        // Scalar UI at /docs
         .merge(Scalar::with_url("/docs", openapi_spec.clone()))
-        // Swagger UI at /swagger + raw JSON at /api-docs/openapi.json
         .merge(
             SwaggerUi::new("/swagger")
                 .url("/api-docs/openapi.json", openapi_spec),
         )
-        .layer(TraceLayer::new_for_http())
+        .layer(trace_layer)
         .layer(cors)
         .with_state(state)
 }
