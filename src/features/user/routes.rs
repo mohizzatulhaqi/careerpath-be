@@ -1,8 +1,11 @@
-use crate::state::AppState;
-use axum::Router;
+use crate::{features::user::handler, state::AppState};
+use axum::{
+    routing::get,
+    Router,
+};
 use std::sync::Arc;
 
-// TODO: implement user profile endpoints (GET /users/me, PATCH /users/me, etc.)
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
+        .route("/me", get(handler::get_profile).patch(handler::update_profile))
 }

@@ -176,6 +176,27 @@ UPDATE users SET password_hash = '...' WHERE id = '00000000-0000-0000-0000-00000
 
 ---
 
+### User Profile (`/api/users`)
+
+| Method | Path | Auth | Deskripsi |
+|---|---|---|---|
+| `GET` | `/api/users/me` | ✓ | Lihat profil sendiri |
+| `PATCH` | `/api/users/me` | ✓ | Update nama dan/atau password |
+
+**Request body `PATCH /api/users/me`:**
+
+```json
+{
+  "name": "Nama Baru",
+  "current_password": "PasswordLama123!",
+  "new_password": "PasswordBaru456!"
+}
+```
+
+Semua field opsional — tapi minimal satu harus diisi. Jika `new_password` diisi, `current_password` wajib disertakan.
+
+---
+
 ### Pre-Quiz — Role Determining (`/api/quiz`)
 
 Digunakan user untuk menentukan career role sebelum mulai belajar.

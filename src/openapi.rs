@@ -30,6 +30,9 @@ impl Modify for SecurityAddon {
         description = "API for the Career Path learning platform"
     ),
     paths(
+        // User profile
+        crate::features::user::handler::get_profile,
+        crate::features::user::handler::update_profile,
         // Auth
         crate::features::auth::handler::register,
         crate::features::auth::handler::login,
@@ -142,6 +145,9 @@ impl Modify for SecurityAddon {
         crate::features::admin::content::project::handler::restore_project,
     ),
     components(schemas(
+        // User profile
+        crate::features::user::dto::ProfileResponse,
+        crate::features::user::dto::UpdateProfileRequest,
         // Auth
         crate::features::auth::dto::RegisterRequest,
         crate::features::auth::dto::LoginRequest,
@@ -327,6 +333,7 @@ impl Modify for SecurityAddon {
         crate::features::admin::content::submaterial_quiz::dto::ReplaceOptionsRequest,
     )),
     tags(
+        (name = "User", description = "User profile endpoints"),
         (name = "Auth", description = "Authentication endpoints"),
         (name = "Quiz", description = "Career path quiz endpoints"),
         (name = "Learning - Modules", description = "Learning module endpoints"),
