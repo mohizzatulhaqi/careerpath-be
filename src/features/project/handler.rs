@@ -5,16 +5,16 @@ use crate::{
         project::{dto::SubmitProjectInput, error::ProjectError, service},
     },
     middleware::auth::AuthUser,
-    shared::response::ApiResponse,
+    shared::{body::chunked_body, response::ApiResponse},
     state::AppState,
 };
 use axum::{
-    body::Body,
     extract::{Multipart, Path, State},
     http::{header, StatusCode},
     response::{IntoResponse, Response},
 };
 use bytes::Bytes;
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -179,15 +179,21 @@ pub async fn download_submission(
     Path(submission_id): Path<Uuid>,
 ) -> Result<Response, AppError> {
     let (data, file_name) = service::download_submission(&state, auth.user_id, submission_id).await?;
-    let response = Response::builder()
+
+    let ascii_name: String = file_name
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | '_') { c } else { '_' })
+        .collect();
+    let encoded_name = utf8_percent_encode(&file_name, NON_ALPHANUMERIC).to_string();
+    let content_disposition =
+        format!("attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{encoded_name}");
+
+    let content_length = data.len();
+    Response::builder()
         .status(StatusCode::OK)
         .header(header::CONTENT_TYPE, "application/zip")
-        .header(
-            header::CONTENT_DISPOSITION,
-            format!("attachment; filename=\"{file_name}\""),
-        )
-        .header(header::CONTENT_LENGTH, data.len().to_string())
-        .body(Body::from(data))
-        .unwrap();
-    Ok(response)
+        .header(header::CONTENT_DISPOSITION, content_disposition)
+        .header(header::CONTENT_LENGTH, content_length.to_string())
+        .body(chunked_body(data))
+        .map_err(|e| AppError::Internal(anyhow::anyhow!("response build: {e}")))
 }

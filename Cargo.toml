@@ -72,6 +72,9 @@ qrcode = "0.14"          # QR code generation
 image = { version = "0.25", default-features = false, features = ["png"] }
 rand = "0.8"
 base64 = "0.22"
+governor = "0.6"
+futures = { version = "0.3", default-features = false, features = ["alloc"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 
 [profile.release]
 strip = true        # strip debug symbols → smaller binary
@@ -87,4 +90,5 @@ sqlx = { version = "0.8", features = [
   "postgres",
   "uuid",
   "chrono",
+  "macros",
 ] }

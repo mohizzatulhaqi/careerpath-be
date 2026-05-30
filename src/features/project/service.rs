@@ -157,6 +157,12 @@ pub async fn submit_project(
     let validated = validate_zip(&input.file_bytes, &input.file_name, &cfg)
         .map_err(|e| ProjectError::InvalidFile(e.to_string()))?;
 
+    // Fetch old file path before storing new one — used for cleanup after success
+    let old_file_path = repository::get_latest_file_path(&state.db, project_id, user_id)
+        .await
+        .ok()
+        .flatten();
+
     let file_id = uuid::Uuid::new_v4();
     let relative_path = state
         .storage
@@ -176,6 +182,13 @@ pub async fn submit_project(
     )
     .await
     .map_err(|e| ProjectError::Storage(e.to_string()))?;
+
+    // Best-effort: delete old file after new submission is committed
+    if let Some(old_path) = old_file_path {
+        if let Err(e) = state.storage.delete(&old_path).await {
+            tracing::warn!("failed to delete old submission file '{old_path}': {e}");
+        }
+    }
 
     Ok(SubmitResponse {
         submission_id: submission.id,

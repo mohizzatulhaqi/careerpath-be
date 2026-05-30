@@ -30,10 +30,12 @@ async fn issue_tokens(
     )?;
 
     let refresh_token = new_refresh_token();
+    let family_id = Uuid::new_v4();
     let expires_at =
         Utc::now() + chrono::Duration::seconds(state.config.refresh_token_expires_in as i64);
 
-    repository::create_refresh_token(&state.db, user_id, &refresh_token, expires_at).await?;
+    repository::create_refresh_token(&state.db, user_id, family_id, &refresh_token, expires_at)
+        .await?;
 
     Ok((access_token, refresh_token))
 }
@@ -105,6 +107,10 @@ pub async fn me(
 }
 
 /// Exchange a valid refresh token for a new access token + rotated refresh token.
+///
+/// Theft detection: each token is marked `used` after rotation rather than deleted.
+/// If a used token is replayed, the entire token family is revoked (all devices
+/// in that session chain are forced to log in again).
 pub async fn refresh(
     state: &Arc<AppState>,
     refresh_token: &str,
@@ -113,8 +119,19 @@ pub async fn refresh(
         .await?
         .ok_or(AuthError::InvalidRefreshToken)?;
 
+    // Replay of a previously-rotated token — possible token theft.
+    // Revoke the entire family to protect the legitimate user.
+    if stored.used {
+        tracing::warn!(
+            family_id = %stored.family_id,
+            user_id = %stored.user_id,
+            "Refresh token replay detected — revoking token family (possible theft)"
+        );
+        repository::delete_token_family(&state.db, stored.family_id).await?;
+        return Err(AuthError::InvalidRefreshToken);
+    }
+
     if stored.expires_at < Utc::now() {
-        // Expired — clean it up and reject
         repository::delete_refresh_token(&state.db, refresh_token).await?;
         return Err(AuthError::RefreshTokenExpired);
     }
@@ -123,10 +140,8 @@ pub async fn refresh(
         .await?
         .ok_or(AuthError::UserNotFound)?;
 
-    // Deny refresh if account was deactivated after the refresh token was issued.
-    // Access token (already issued, short-lived) remains valid until expiry — Pilihan A.
     if !user.is_active {
-        repository::delete_refresh_token(&state.db, refresh_token).await?;
+        repository::delete_token_family(&state.db, stored.family_id).await?;
         return Err(AuthError::AccountDeactivated);
     }
 
@@ -141,11 +156,11 @@ pub async fn refresh(
     let expires_at =
         Utc::now() + chrono::Duration::seconds(state.config.refresh_token_expires_in as i64);
 
-    // Atomic swap: old token out, new token in
     repository::rotate_refresh_token(
         &state.db,
         refresh_token,
         user.id,
+        stored.family_id,
         &new_refresh,
         expires_at,
     )

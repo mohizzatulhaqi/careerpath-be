@@ -157,3 +157,21 @@ pub async fn get_latest_submission_status(
 
     Ok(row.map(|r| r.status))
 }
+
+/// Returns the file_path of the most recent submission for cleanup purposes.
+/// Uses non-macro query so no .sqlx update needed.
+pub async fn get_latest_file_path(
+    pool: &PgPool,
+    project_id: Uuid,
+    user_id: Uuid,
+) -> sqlx::Result<Option<String>> {
+    sqlx::query_scalar(
+        "SELECT file_path FROM project_submissions
+         WHERE project_id = $1 AND user_id = $2
+         ORDER BY submitted_at DESC LIMIT 1",
+    )
+    .bind(project_id)
+    .bind(user_id)
+    .fetch_optional(pool)
+    .await
+}

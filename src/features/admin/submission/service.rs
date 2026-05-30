@@ -16,7 +16,10 @@ use crate::{
     features::admin::audit::service as audit_svc,
     features::certificate::service::CertificateService,
     features::project::storage::Storage,
-    shared::sanitization,
+    shared::{
+        email::{send_review_notification, ReviewEmailPayload},
+        sanitization,
+    },
 };
 
 /// Returned by `download_file`.
@@ -56,11 +59,16 @@ pub fn validate_transition(from: &str, to: &str) -> Result<(), SubmissionError> 
 pub struct AdminSubmissionService<'a> {
     pub db: &'a sqlx::PgPool,
     pub storage: Arc<dyn Storage>,
+    pub resend_api_key: Option<String>,
 }
 
 impl<'a> AdminSubmissionService<'a> {
-    pub fn new(db: &'a sqlx::PgPool, storage: Arc<dyn Storage>) -> Self {
-        Self { db, storage }
+    pub fn new(
+        db: &'a sqlx::PgPool,
+        storage: Arc<dyn Storage>,
+        resend_api_key: Option<String>,
+    ) -> Self {
+        Self { db, storage, resend_api_key }
     }
 
     // ── List ──────────────────────────────────────────────────────────────────
@@ -256,6 +264,24 @@ impl<'a> AdminSubmissionService<'a> {
             .await
             .map_err(SubmissionError::Internal)?
             .ok_or(SubmissionError::NotFound)?;
+
+        // Best-effort email notification — never fail the review for email errors
+        if let Some(ref api_key) = self.resend_api_key {
+            let result = send_review_notification(
+                api_key,
+                ReviewEmailPayload {
+                    to_email: &user.email,
+                    to_name: &user.name,
+                    project_title: &project.title,
+                    status: new_status,
+                    reviewer_notes: &notes,
+                },
+            )
+            .await;
+            if let Err(e) = result {
+                tracing::warn!("Failed to send review email to {}: {e}", user.email);
+            }
+        }
 
         Ok(ReviewResultDto {
             submission_id,

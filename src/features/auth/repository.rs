@@ -52,16 +52,18 @@ pub async fn create(
 pub async fn create_refresh_token(
     pool: &PgPool,
     user_id: Uuid,
+    family_id: Uuid,
     token: &str,
     expires_at: DateTime<Utc>,
 ) -> Result<RefreshToken, sqlx::Error> {
     sqlx::query_as::<_, RefreshToken>(
-        "INSERT INTO refresh_tokens (id, user_id, token, expires_at)
-         VALUES (gen_random_uuid(), $1, $2, $3)
-         RETURNING id, user_id, token, expires_at, created_at",
+        "INSERT INTO refresh_tokens (id, user_id, token, family_id, expires_at)
+         VALUES (gen_random_uuid(), $1, $2, $3, $4)
+         RETURNING id, user_id, token, family_id, used, expires_at, created_at",
     )
     .bind(user_id)
     .bind(token)
+    .bind(family_id)
     .bind(expires_at)
     .fetch_one(pool)
     .await
@@ -72,7 +74,7 @@ pub async fn find_refresh_token(
     token: &str,
 ) -> Result<Option<RefreshToken>, sqlx::Error> {
     sqlx::query_as::<_, RefreshToken>(
-        "SELECT id, user_id, token, expires_at, created_at
+        "SELECT id, user_id, token, family_id, used, expires_at, created_at
          FROM refresh_tokens WHERE token = $1",
     )
     .bind(token)
@@ -88,32 +90,44 @@ pub async fn delete_refresh_token(pool: &PgPool, token: &str) -> Result<(), sqlx
     Ok(())
 }
 
-/// Rotate: delete old token and insert new one atomically.
+/// Rotate: mark old token as used and insert new one in the same family, atomically.
+/// The old token is kept (not deleted) so replays can be detected as theft.
 pub async fn rotate_refresh_token(
     pool: &PgPool,
     old_token: &str,
     user_id: Uuid,
+    family_id: Uuid,
     new_token: &str,
     expires_at: DateTime<Utc>,
 ) -> Result<RefreshToken, sqlx::Error> {
     let mut tx = pool.begin().await?;
 
-    sqlx::query("DELETE FROM refresh_tokens WHERE token = $1")
+    sqlx::query("UPDATE refresh_tokens SET used = TRUE WHERE token = $1")
         .bind(old_token)
         .execute(&mut *tx)
         .await?;
 
     let rt = sqlx::query_as::<_, RefreshToken>(
-        "INSERT INTO refresh_tokens (id, user_id, token, expires_at)
-         VALUES (gen_random_uuid(), $1, $2, $3)
-         RETURNING id, user_id, token, expires_at, created_at",
+        "INSERT INTO refresh_tokens (id, user_id, token, family_id, expires_at)
+         VALUES (gen_random_uuid(), $1, $2, $3, $4)
+         RETURNING id, user_id, token, family_id, used, expires_at, created_at",
     )
     .bind(user_id)
     .bind(new_token)
+    .bind(family_id)
     .bind(expires_at)
     .fetch_one(&mut *tx)
     .await?;
 
     tx.commit().await?;
     Ok(rt)
+}
+
+/// Revoke all tokens in a family (theft response — logs out all devices in that chain).
+pub async fn delete_token_family(pool: &PgPool, family_id: Uuid) -> Result<(), sqlx::Error> {
+    sqlx::query("DELETE FROM refresh_tokens WHERE family_id = $1")
+        .bind(family_id)
+        .execute(pool)
+        .await?;
+    Ok(())
 }

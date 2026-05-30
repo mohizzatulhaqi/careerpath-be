@@ -50,6 +50,24 @@ async fn main() -> anyhow::Result<()> {
         storage,
     });
 
+    // Periodic cleanup of expired refresh tokens (runs every 6 hours).
+    // Deletes ALL expired tokens — used (theft-detection records no longer needed)
+    // and unused (tokens that were issued but never exchanged).
+    let cleanup_db = state.db.clone();
+    tokio::spawn(async move {
+        let interval = tokio::time::Duration::from_secs(6 * 60 * 60);
+        loop {
+            match sqlx::query("DELETE FROM refresh_tokens WHERE expires_at < NOW()")
+                .execute(&cleanup_db)
+                .await
+            {
+                Ok(r) => tracing::info!("Cleaned up {} expired refresh token(s)", r.rows_affected()),
+                Err(e) => tracing::warn!("Refresh token cleanup failed: {e}"),
+            }
+            tokio::time::sleep(interval).await;
+        }
+    });
+
     let router = app::create_app(state);
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await?;
     tracing::info!("Server listening on http://0.0.0.0:{port}");

@@ -24,6 +24,8 @@ pub struct Config {
     pub app_base_url: String,
     /// Storage backend: local (filesystem) or database (PostgreSQL BYTEA)
     pub storage_backend: StorageBackend,
+    /// Resend API key for email notifications (optional — emails skipped if unset)
+    pub resend_api_key: Option<String>,
 }
 
 impl Config {
@@ -54,6 +56,7 @@ impl Config {
                 .context("MAX_UPLOAD_SIZE_BYTES must be a positive integer")?,
             app_base_url: std::env::var("APP_BASE_URL")
                 .unwrap_or_else(|_| "http://localhost:3002".to_string()),
+            resend_api_key: std::env::var("RESEND_API_KEY").ok(),
             storage_backend: match std::env::var("STORAGE_BACKEND")
                 .unwrap_or_default()
                 .to_lowercase()
