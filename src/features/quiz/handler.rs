@@ -15,7 +15,7 @@ use uuid::Uuid;
 
 #[utoipa::path(
     get,
-    path = "/api/quiz",
+    path = "/api/quiz/questions",
     tag = "Quiz",
     security(("bearer_auth" = [])),
     responses(
