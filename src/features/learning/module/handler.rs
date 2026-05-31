@@ -14,6 +14,7 @@ use uuid::Uuid;
 
 #[utoipa::path(
     get,
+    operation_id = "user_list_modules",
     path = "/api/learning/modules",
     tag = "Learning - Modules",
     security(("bearer_auth" = [])),
@@ -35,6 +36,7 @@ pub async fn list_modules(
 
 #[utoipa::path(
     get,
+    operation_id = "user_get_module",
     path = "/api/learning/modules/{id}",
     tag = "Learning - Modules",
     security(("bearer_auth" = [])),

@@ -60,7 +60,7 @@ pub async fn send_review_notification(
         .post("https://api.resend.com/emails")
         .bearer_auth(api_key)
         .json(&json!({
-            "from": "CareerPath <onboarding@resend.dev>",
+            "from": "SkillUp <onboarding@resend.dev>",
             "to": [payload.to_email],
             "subject": subject,
             "html": html,

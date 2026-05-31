@@ -25,6 +25,8 @@ pub struct ForceQuery { pub force: Option<bool> }
 
 #[utoipa::path(
     get,
+
+    operation_id = "admin_list_module_quiz_questions",
     path = "/api/admin/modules/{module_id}/final-quiz",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -49,6 +51,7 @@ pub async fn list_questions(
 
 #[utoipa::path(
     post,
+    operation_id = "admin_create_module_quiz_question",
     path = "/api/admin/module-quiz-questions",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -72,6 +75,7 @@ pub async fn create_question(
 
 #[utoipa::path(
     patch,
+    operation_id = "admin_update_module_quiz_question",
     path = "/api/admin/module-quiz-questions/{id}",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -99,6 +103,7 @@ pub async fn update_question(
 
 #[utoipa::path(
     patch,
+    operation_id = "admin_replace_module_quiz_options",
     path = "/api/admin/module-quiz-questions/{id}/options",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -130,6 +135,7 @@ pub async fn replace_options(
 
 #[utoipa::path(
     delete,
+    operation_id = "admin_delete_module_quiz_question",
     path = "/api/admin/module-quiz-questions/{id}",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),

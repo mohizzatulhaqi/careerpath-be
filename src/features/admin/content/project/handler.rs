@@ -21,6 +21,8 @@ use crate::{
 
 #[utoipa::path(
     get,
+
+        operation_id = "admin_list_projects",
     path = "/api/admin/projects",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -41,6 +43,8 @@ pub async fn list_projects(
 
 #[utoipa::path(
     get,
+
+        operation_id = "admin_get_project",
     path = "/api/admin/projects/{id}",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -65,6 +69,8 @@ pub async fn get_project(
 
 #[utoipa::path(
     post,
+
+        operation_id = "admin_create_project",
     path = "/api/admin/projects",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -87,6 +93,8 @@ pub async fn create_project(
 
 #[utoipa::path(
     patch,
+
+        operation_id = "admin_update_project",
     path = "/api/admin/projects/{id}",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),

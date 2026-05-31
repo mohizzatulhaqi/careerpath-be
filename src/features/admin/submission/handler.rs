@@ -16,6 +16,8 @@ use crate::{error::AppError, middleware::role_guard::AdminUser, shared::body::ch
 
 #[utoipa::path(
     get,
+
+        operation_id = "admin_list_submissions",
     path = "/api/admin/submissions",
     tag = "Admin - Submissions",
     security(("bearer_auth" = [])),
@@ -39,6 +41,8 @@ pub async fn list_submissions(
 
 #[utoipa::path(
     get,
+
+        operation_id = "admin_get_submission",
     path = "/api/admin/submissions/{id}",
     tag = "Admin - Submissions",
     security(("bearer_auth" = [])),
@@ -66,6 +70,8 @@ pub async fn get_submission(
 
 #[utoipa::path(
     get,
+
+        operation_id = "admin_download_submission",
     path = "/api/admin/submissions/{id}/download",
     tag = "Admin - Submissions",
     security(("bearer_auth" = [])),

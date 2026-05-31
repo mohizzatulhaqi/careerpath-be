@@ -27,6 +27,8 @@ pub struct ForceQuery {
 
 #[utoipa::path(
     get,
+
+        operation_id = "admin_list_submaterials",
     path = "/api/admin/submaterials",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -47,6 +49,8 @@ pub async fn list_submaterials(
 
 #[utoipa::path(
     get,
+
+        operation_id = "admin_get_submaterial",
     path = "/api/admin/submaterials/{id}",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -71,6 +75,8 @@ pub async fn get_submaterial(
 
 #[utoipa::path(
     post,
+
+        operation_id = "admin_create_submaterial",
     path = "/api/admin/submaterials",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -102,6 +108,8 @@ pub async fn create_submaterial(
 
 #[utoipa::path(
     patch,
+
+        operation_id = "admin_update_submaterial",
     path = "/api/admin/submaterials/{id}",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -129,6 +137,8 @@ pub async fn update_submaterial(
 
 #[utoipa::path(
     delete,
+
+        operation_id = "admin_delete_submaterial",
     path = "/api/admin/submaterials/{id}",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -164,6 +174,8 @@ pub async fn delete_submaterial(
 
 #[utoipa::path(
     post,
+
+        operation_id = "admin_restore_submaterial",
     path = "/api/admin/submaterials/{id}/restore",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),

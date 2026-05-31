@@ -14,6 +14,7 @@ use uuid::Uuid;
 
 #[utoipa::path(
     get,
+    operation_id = "user_get_submaterial",
     path = "/api/learning/submaterials/{id}",
     tag = "Learning - Submaterials",
     security(("bearer_auth" = [])),
@@ -40,6 +41,7 @@ pub async fn get_submaterial(
 
 #[utoipa::path(
     post,
+    operation_id = "user_complete_submaterial",
     path = "/api/learning/submaterials/{id}/complete",
     tag = "Learning - Submaterials",
     security(("bearer_auth" = [])),

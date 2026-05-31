@@ -27,6 +27,8 @@ pub struct ForceQuery {
 
 #[utoipa::path(
     get,
+
+        operation_id = "admin_list_modules",
     path = "/api/admin/modules",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -47,6 +49,8 @@ pub async fn list_modules(
 
 #[utoipa::path(
     get,
+
+        operation_id = "admin_get_module",
     path = "/api/admin/modules/{id}",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -71,6 +75,8 @@ pub async fn get_module(
 
 #[utoipa::path(
     post,
+
+        operation_id = "admin_create_module",
     path = "/api/admin/modules",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -93,6 +99,8 @@ pub async fn create_module(
 
 #[utoipa::path(
     patch,
+
+        operation_id = "admin_update_module",
     path = "/api/admin/modules/{id}",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -120,6 +128,8 @@ pub async fn update_module(
 
 #[utoipa::path(
     delete,
+
+        operation_id = "admin_delete_module",
     path = "/api/admin/modules/{id}",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -159,6 +169,8 @@ pub async fn delete_module(
 
 #[utoipa::path(
     post,
+
+        operation_id = "admin_restore_module",
     path = "/api/admin/modules/{id}/restore",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),

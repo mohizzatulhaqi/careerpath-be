@@ -27,6 +27,7 @@ pub struct ForceQuery {
 
 #[utoipa::path(
     get,
+    operation_id = "admin_list_sub_quiz_questions",
     path = "/api/admin/submaterials/{submaterial_id}/quiz",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -53,6 +54,7 @@ pub async fn list_questions(
 
 #[utoipa::path(
     post,
+    operation_id = "admin_create_sub_quiz_question",
     path = "/api/admin/submaterial-quiz-questions",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -78,6 +80,7 @@ pub async fn create_question(
 
 #[utoipa::path(
     patch,
+    operation_id = "admin_update_sub_quiz_question",
     path = "/api/admin/submaterial-quiz-questions/{id}",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -107,6 +110,7 @@ pub async fn update_question(
 
 #[utoipa::path(
     patch,
+    operation_id = "admin_replace_sub_quiz_options",
     path = "/api/admin/submaterial-quiz-questions/{id}/options",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),
@@ -138,6 +142,7 @@ pub async fn replace_options(
 
 #[utoipa::path(
     delete,
+    operation_id = "admin_delete_sub_quiz_question",
     path = "/api/admin/submaterial-quiz-questions/{id}",
     tag = "Admin - Content",
     security(("bearer_auth" = [])),

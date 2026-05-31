@@ -25,6 +25,7 @@ fn learning_err_to_project(e: LearningError) -> ProjectError {
 
 #[utoipa::path(
     get,
+    operation_id = "user_get_my_project",
     path = "/api/projects/me",
     tag = "Project",
     security(("bearer_auth" = [])),
@@ -48,6 +49,7 @@ pub async fn get_my_project(
 
 #[utoipa::path(
     get,
+    operation_id = "user_get_project",
     path = "/api/projects/{id}",
     tag = "Project",
     security(("bearer_auth" = [])),
@@ -160,6 +162,7 @@ pub async fn get_submissions(
 
 #[utoipa::path(
     get,
+    operation_id = "user_download_submission",
     path = "/api/projects/submissions/{submission_id}/download",
     tag = "Project",
     security(("bearer_auth" = [])),
