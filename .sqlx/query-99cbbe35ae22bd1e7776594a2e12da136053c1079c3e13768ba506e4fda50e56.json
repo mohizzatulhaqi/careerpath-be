@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT\n            a.id,\n            a.admin_id,\n            u.name  AS admin_name,\n            u.email AS admin_email,\n            a.action,\n            a.target_type,\n            a.target_id,\n            a.metadata,\n            a.created_at\n        FROM admin_audit_logs a\n        JOIN users u ON u.id = a.admin_id\n        WHERE\n            ($1::text   IS NULL OR a.action      = $1)\n            AND ($2::uuid   IS NULL OR a.admin_id   = $2)\n            AND ($3::text   IS NULL OR a.target_type = $3)\n            AND ($4::uuid   IS NULL OR a.target_id  = $4)\n            AND ($5::timestamptz IS NULL OR a.created_at >= $5)\n            AND ($6::timestamptz IS NULL OR a.created_at <= $6)\n        ORDER BY a.created_at DESC\n        LIMIT $7 OFFSET $8\n        ",
+  "query": "\n        SELECT\n            a.id,\n            a.admin_id,\n            u.name  AS admin_name,\n            u.email AS admin_email,\n            a.action,\n            a.target_type,\n            a.target_id,\n            a.metadata,\n            a.created_at\n        FROM admin_audit_logs a\n        JOIN users u ON u.id = a.admin_id\n        WHERE\n            ($1::text   IS NULL OR LOWER(REPLACE(a.action, '.', '_')) = LOWER(REPLACE($1, '.', '_')))\n            AND ($2::uuid   IS NULL OR a.admin_id   = $2)\n            AND ($3::text   IS NULL OR LOWER(a.target_type) = $3)\n            AND ($4::uuid   IS NULL OR a.target_id  = $4)\n            AND ($5::timestamptz IS NULL OR a.created_at >= $5)\n            AND ($6::timestamptz IS NULL OR a.created_at <= $6)\n        ORDER BY a.created_at DESC\n        LIMIT $7 OFFSET $8\n        ",
   "describe": {
     "columns": [
       {
@@ -73,5 +73,5 @@
       false
     ]
   },
-  "hash": "6d039cb0014e04da7d2932aa7ee86c295ee207e9dfeaa58313fe7d5931e3da76"
+  "hash": "99cbbe35ae22bd1e7776594a2e12da136053c1079c3e13768ba506e4fda50e56"
 }

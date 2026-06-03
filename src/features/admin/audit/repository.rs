@@ -1,4 +1,5 @@
 use anyhow::Context;
+use chrono::{DateTime, Utc};
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
 use serde_json::Value;
@@ -47,24 +48,37 @@ pub async fn list_logs_with_admin(
     let per_page = filter.per_page.unwrap_or(20).clamp(1, 100);
     let offset = (page - 1) * per_page;
 
+    // Bug 2 fix: normalize target_type to lowercase so "User" matches stored "user"
+    let target_type_lower = filter.target_type.as_deref().map(str::to_lowercase);
+
+    // Bug 3 fix: convert NaiveDate to UTC DateTime bounds so YYYY-MM-DD is accepted
+    let from_dt: Option<DateTime<Utc>> = filter.from_date
+        .and_then(|d| d.and_hms_opt(0, 0, 0))
+        .map(|ndt| ndt.and_utc());
+    let to_dt: Option<DateTime<Utc>> = filter.to_date
+        .and_then(|d| d.and_hms_opt(23, 59, 59))
+        .map(|ndt| ndt.and_utc());
+
     // Count total matching rows
+    // Bug 1 fix: normalize action via LOWER+REPLACE('.','_') on both sides so
+    //   stored "user.deactivated" matches frontend "USER_DEACTIVATED"
     let total_items: i64 = sqlx::query_scalar!(
         r#"
         SELECT COUNT(*) FROM admin_audit_logs a
         WHERE
-            ($1::text   IS NULL OR a.action      = $1)
+            ($1::text   IS NULL OR LOWER(REPLACE(a.action, '.', '_')) = LOWER(REPLACE($1, '.', '_')))
             AND ($2::uuid   IS NULL OR a.admin_id   = $2)
-            AND ($3::text   IS NULL OR a.target_type = $3)
+            AND ($3::text   IS NULL OR LOWER(a.target_type) = $3)
             AND ($4::uuid   IS NULL OR a.target_id  = $4)
             AND ($5::timestamptz IS NULL OR a.created_at >= $5)
             AND ($6::timestamptz IS NULL OR a.created_at <= $6)
         "#,
         filter.action as _,
         filter.admin_id as _,
-        filter.target_type as _,
+        target_type_lower as _,
         filter.target_id as _,
-        filter.from_date as _,
-        filter.to_date as _,
+        from_dt as _,
+        to_dt as _,
     )
     .fetch_one(pool)
     .await
@@ -87,9 +101,9 @@ pub async fn list_logs_with_admin(
         FROM admin_audit_logs a
         JOIN users u ON u.id = a.admin_id
         WHERE
-            ($1::text   IS NULL OR a.action      = $1)
+            ($1::text   IS NULL OR LOWER(REPLACE(a.action, '.', '_')) = LOWER(REPLACE($1, '.', '_')))
             AND ($2::uuid   IS NULL OR a.admin_id   = $2)
-            AND ($3::text   IS NULL OR a.target_type = $3)
+            AND ($3::text   IS NULL OR LOWER(a.target_type) = $3)
             AND ($4::uuid   IS NULL OR a.target_id  = $4)
             AND ($5::timestamptz IS NULL OR a.created_at >= $5)
             AND ($6::timestamptz IS NULL OR a.created_at <= $6)
@@ -98,10 +112,10 @@ pub async fn list_logs_with_admin(
         "#,
         filter.action as _,
         filter.admin_id as _,
-        filter.target_type as _,
+        target_type_lower as _,
         filter.target_id as _,
-        filter.from_date as _,
-        filter.to_date as _,
+        from_dt as _,
+        to_dt as _,
         per_page,
         offset,
     )

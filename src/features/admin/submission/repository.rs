@@ -76,12 +76,12 @@ pub async fn list_submissions(
     let per_page = filter.per_page.unwrap_or(20).clamp(1, 100);
     let offset = (page - 1) * per_page;
 
+    let filter_all = matches!(filter.status.as_deref(), None | Some("all") | Some(""));
     let effective_status = filter
         .status
         .as_deref()
-        .filter(|s| *s != "all")
+        .filter(|s| !matches!(*s, "all" | ""))
         .unwrap_or("pending_review");
-    let filter_all = filter.status.as_deref() == Some("all");
 
     let sort_asc = filter.sort.as_deref() != Some("submitted_at_desc");
 

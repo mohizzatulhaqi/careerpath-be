@@ -1,5 +1,5 @@
 use utoipa::ToSchema;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
@@ -44,6 +44,8 @@ pub struct AuditLogFilter {
     pub admin_id: Option<Uuid>,
     pub target_type: Option<String>,
     pub target_id: Option<Uuid>,
-    pub from_date: Option<DateTime<Utc>>,
-    pub to_date: Option<DateTime<Utc>>,
+    /// Inclusive start date, format YYYY-MM-DD (e.g. 2025-01-01)
+    pub from_date: Option<NaiveDate>,
+    /// Inclusive end date, format YYYY-MM-DD (e.g. 2025-12-31)
+    pub to_date: Option<NaiveDate>,
 }

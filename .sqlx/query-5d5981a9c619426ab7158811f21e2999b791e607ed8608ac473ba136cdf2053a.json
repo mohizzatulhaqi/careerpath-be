@@ -1,0 +1,27 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT COUNT(*) FROM admin_audit_logs a\n        WHERE\n            ($1::text   IS NULL OR LOWER(REPLACE(a.action, '.', '_')) = LOWER(REPLACE($1, '.', '_')))\n            AND ($2::uuid   IS NULL OR a.admin_id   = $2)\n            AND ($3::text   IS NULL OR LOWER(a.target_type) = $3)\n            AND ($4::uuid   IS NULL OR a.target_id  = $4)\n            AND ($5::timestamptz IS NULL OR a.created_at >= $5)\n            AND ($6::timestamptz IS NULL OR a.created_at <= $6)\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "5d5981a9c619426ab7158811f21e2999b791e607ed8608ac473ba136cdf2053a"
+}
