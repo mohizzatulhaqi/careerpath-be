@@ -40,6 +40,15 @@ pub struct LogoutRequest {
     pub refresh_token: String,
 }
 
+#[derive(Debug, Deserialize, Validate, ToSchema)]
+pub struct ChangePasswordRequest {
+    #[validate(length(min = 1, message = "Current password is required"))]
+    pub old_password: String,
+
+    #[validate(length(min = 8, message = "New password must be at least 8 characters"))]
+    pub new_password: String,
+}
+
 // ── Responses ────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Serialize, ToSchema)]

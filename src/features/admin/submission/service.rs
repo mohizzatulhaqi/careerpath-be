@@ -206,7 +206,6 @@ impl<'a> AdminSubmissionService<'a> {
             .await
             .map_err(SubmissionError::Database)?;
 
-        // 1. SELECT FOR UPDATE (row-level lock, prevents race condition)
         let current = repository::find_for_update(&mut tx, submission_id)
             .await
             .map_err(SubmissionError::Internal)?
@@ -214,10 +213,8 @@ impl<'a> AdminSubmissionService<'a> {
 
         let old_status = current.status.clone();
 
-        // 2. Validate state transition
         validate_transition(&old_status, new_status)?;
 
-        // 3. Update + insert history (single DB call pair)
         let reviewed_at = repository::apply_review(
             &mut tx,
             submission_id,
@@ -229,7 +226,6 @@ impl<'a> AdminSubmissionService<'a> {
         .await
         .map_err(SubmissionError::Internal)?;
 
-        // 4. Audit log
         let was_previously_approved = old_status == "approved";
         audit_svc::log(
             &mut tx,
@@ -248,7 +244,6 @@ impl<'a> AdminSubmissionService<'a> {
         .context("audit log")
         .map_err(SubmissionError::Internal)?;
 
-        // 5. Auto-issue certificate if this is an approval
         let issued_cert = if new_status == "approved" {
             CertificateService::try_issue(&mut tx, admin_id, current.user_id)
                 .await
@@ -259,7 +254,6 @@ impl<'a> AdminSubmissionService<'a> {
 
         tx.commit().await.map_err(SubmissionError::Database)?;
 
-        // 6. Build response (re-query brief info outside tx, lock released)
         let (user, project) = repository::get_review_brief(self.db, submission_id)
             .await
             .map_err(SubmissionError::Internal)?

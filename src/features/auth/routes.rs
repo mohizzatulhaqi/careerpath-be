@@ -7,7 +7,6 @@ use axum::{
 use std::sync::Arc;
 
 pub fn router() -> Router<Arc<AppState>> {
-    // 10 requests per minute per IP for login/register/refresh
     let limiter = rate_limit::new_limiter(10);
 
     let throttled = Router::new()
@@ -21,6 +20,7 @@ pub fn router() -> Router<Arc<AppState>> {
 
     Router::new()
         .merge(throttled)
-        .route("/logout", post(handler::logout))
-        .route("/me",     get(handler::me))
+        .route("/logout",          post(handler::logout))
+        .route("/change-password", post(handler::change_password))
+        .route("/me",              get(handler::me))
 }

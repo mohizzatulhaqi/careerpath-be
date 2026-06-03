@@ -1,6 +1,6 @@
 use crate::{
     features::auth::{
-        dto::{AuthResponse, LoginRequest, RegisterRequest, TokenResponse, UserResponse},
+        dto::{AuthResponse, ChangePasswordRequest, LoginRequest, RegisterRequest, TokenResponse, UserResponse},
         error::AuthError,
         repository,
     },
@@ -174,9 +174,26 @@ pub async fn refresh(
     })
 }
 
-/// Invalidate a refresh token (logout from current device).
+pub async fn change_password(
+    state: &Arc<AppState>,
+    user_id: Uuid,
+    req: ChangePasswordRequest,
+) -> Result<(), AuthError> {
+    let user = repository::find_by_id(&state.db, user_id)
+        .await?
+        .ok_or(AuthError::UserNotFound)?;
+
+    if !password::verify_password(&req.old_password, &user.password_hash)? {
+        return Err(AuthError::WrongPassword);
+    }
+
+    let new_hash = password::hash_password(&req.new_password)?;
+    repository::update_password(&state.db, user_id, &new_hash).await?;
+
+    Ok(())
+}
+
 pub async fn logout(state: &Arc<AppState>, refresh_token: &str) -> Result<(), AuthError> {
-    // Silently succeed even if token doesn't exist (idempotent)
     repository::delete_refresh_token(&state.db, refresh_token).await?;
     Ok(())
 }

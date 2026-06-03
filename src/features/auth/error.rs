@@ -24,6 +24,9 @@ pub enum AuthError {
     #[error("Refresh token has expired")]
     RefreshTokenExpired,
 
+    #[error("Password lama salah")]
+    WrongPassword,
+
     #[error(transparent)]
     Database(#[from] sqlx::Error),
 
@@ -45,6 +48,7 @@ impl From<AuthError> for AppError {
             AuthError::UserNotFound => AppError::NotFound(e.to_string()),
             AuthError::InvalidRefreshToken => AppError::Unauthorized(e.to_string()),
             AuthError::RefreshTokenExpired => AppError::Unauthorized(e.to_string()),
+            AuthError::WrongPassword => AppError::Unauthorized(e.to_string()),
             AuthError::Database(inner) => AppError::Internal(inner.into()),
             AuthError::Internal(inner) => AppError::Internal(inner),
         }

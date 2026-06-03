@@ -32,11 +32,11 @@ pub enum AppError {
     #[error("{0}")]
     Gone(String),
 
-    /// 401 with code "ACCOUNT_DEACTIVATED" — account has been soft-deleted by admin.
+    /// 401 with code "ACCOUNT_DEACTIVATED" 
     #[error("{0}")]
     AccountDeactivated(String),
 
-    /// 409 with code "REQUIRES_FORCE" — action has side effects, needs ?force=true to confirm.
+    /// 409 with code "REQUIRES_FORCE" 
     #[error("{message}")]
     RequiresForce { message: String, affected_count: i64 },
 }

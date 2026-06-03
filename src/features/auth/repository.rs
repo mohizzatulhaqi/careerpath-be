@@ -7,7 +7,7 @@ const USER_COLS: &str =
     "id, email, password_hash, name, role, is_active, \
      deactivated_at, deactivated_by, deactivation_reason, created_at, updated_at";
 
-// ── User queries ─────────────────────────────────────────────────────────────
+//  User queries 
 
 pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<User>, sqlx::Error> {
     sqlx::query_as::<_, User>(&format!(
@@ -90,8 +90,6 @@ pub async fn delete_refresh_token(pool: &PgPool, token: &str) -> Result<(), sqlx
     Ok(())
 }
 
-/// Rotate: mark old token as used and insert new one in the same family, atomically.
-/// The old token is kept (not deleted) so replays can be detected as theft.
 pub async fn rotate_refresh_token(
     pool: &PgPool,
     old_token: &str,
@@ -123,7 +121,16 @@ pub async fn rotate_refresh_token(
     Ok(rt)
 }
 
-/// Revoke all tokens in a family (theft response — logs out all devices in that chain).
+pub async fn update_password(pool: &PgPool, user_id: Uuid, new_hash: &str) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2")
+        .bind(new_hash)
+        .bind(user_id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+/// Revoke all tokens in a family
 pub async fn delete_token_family(pool: &PgPool, family_id: Uuid) -> Result<(), sqlx::Error> {
     sqlx::query("DELETE FROM refresh_tokens WHERE family_id = $1")
         .bind(family_id)

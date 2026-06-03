@@ -11,41 +11,24 @@ pub enum TextValidationError {
     TooLong { max: usize },
 }
 
-/// Sanitize arbitrary user text:
-///
-/// 1. Trim leading/trailing whitespace.
-/// 2. Strip **all** HTML tags with `ammonia::Builder::empty()` (empty allowlist means
-///    no tags pass — but inner text content is preserved and special characters like
-///    `<` / `>` are HTML-entity-escaped so they render safely).
-///    - `<script>alert(1)</script>` → `alert(1)` (tag stripped, text kept)
-///    - `<b>hello</b>` → `hello`
-///    - `5 < 10` → `5 &lt; 10` (entity-escaped, still readable)
-/// 3. Re-trim after sanitization.
-/// 4. Validate character count (Unicode-aware) within [min, max].
-///
-/// The returned string is safe to store and display (front-end should still use
-/// `textContent` / JSX auto-escape for defence-in-depth).
+
 pub fn sanitize_plain_text(
     raw: &str,
     min: usize,
     max: usize,
 ) -> Result<String, TextValidationError> {
-    // 1. Trim
     let trimmed = raw.trim();
     if trimmed.is_empty() {
         return Err(TextValidationError::Empty);
     }
 
-    // 2. Strip all HTML tags; keep inner text (entity-escaped where needed)
     let sanitized = Builder::empty().clean(trimmed).to_string();
 
-    // 3. Re-trim
     let final_text = sanitized.trim().to_string();
     if final_text.is_empty() {
         return Err(TextValidationError::Empty);
     }
 
-    // 4. Validate length (char count, not byte count → Unicode-safe)
     let char_count = final_text.chars().count();
     if char_count < min {
         return Err(TextValidationError::TooShort { min });
@@ -106,9 +89,7 @@ mod tests {
 
     #[test]
     fn script_tag_stripped_text_kept() {
-        // The text inside <script> is kept; the tag itself is stripped
         let result = sanitize_plain_text("<script>alert(1)</script>Hello", 1, 500).unwrap();
-        // ammonia strips the tag; inner text "alert(1)" and "Hello" remain
         assert!(!result.contains("<script>"));
         assert!(!result.contains("</script>"));
         assert!(result.contains("Hello"));
@@ -124,12 +105,11 @@ mod tests {
 
     #[test]
     fn less_than_greater_than_preserved() {
-        // "5 < 10 and 20 > 15" — the < and > are not HTML tags so ammonia
         // entity-escapes them but does NOT strip text
         let result = sanitize_plain_text("5 < 10 and 20 > 15", 1, 500).unwrap();
         // The text content is preserved (may be entity-escaped)
         assert!(!result.is_empty());
-        // Should not error — this is valid user text
+        // Should not error  this is valid user text
     }
 
     #[test]

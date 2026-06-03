@@ -1,7 +1,7 @@
 use crate::{
     error::AppError,
     features::auth::{
-        dto::{LoginRequest, LogoutRequest, RefreshRequest, RegisterRequest},
+        dto::{ChangePasswordRequest, LoginRequest, LogoutRequest, RefreshRequest, RegisterRequest},
         service,
     },
     middleware::auth::AuthUser,
@@ -97,6 +97,33 @@ pub async fn refresh(
         .await
         .map_err(AppError::from)?;
     Ok(ApiResponse::ok(data))
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/auth/change-password",
+    tag = "Auth",
+    security(("bearer_auth" = [])),
+    request_body = ChangePasswordRequest,
+    responses(
+        (status = 200, description = "Password changed successfully"),
+        (status = 400, description = "Validation error"),
+        (status = 401, description = "Wrong current password or unauthorized"),
+    )
+)]
+pub async fn change_password(
+    State(state): State<Arc<AppState>>,
+    auth_user: AuthUser,
+    Json(body): Json<ChangePasswordRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    body.validate()
+        .map_err(|e| AppError::Validation(e.to_string()))?;
+
+    service::change_password(&state, auth_user.user_id, body)
+        .await
+        .map_err(AppError::from)?;
+
+    Ok(ApiResponse::ok(serde_json::json!({ "message": "Password changed successfully" })))
 }
 
 #[utoipa::path(
