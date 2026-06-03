@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        UPDATE users\n        SET\n            name          = COALESCE($2, name),\n            password_hash = COALESCE($3, password_hash),\n            updated_at    = NOW()\n        WHERE id = $1\n        RETURNING id, email, name, role AS \"role: String\", is_active, created_at, updated_at\n        ",
+  "query": "\n        UPDATE users\n        SET\n            name       = COALESCE($2, name),\n            updated_at = NOW()\n        WHERE id = $1\n        RETURNING id, email, name, role AS \"role: String\", is_active, created_at, updated_at\n        ",
   "describe": {
     "columns": [
       {
@@ -52,8 +52,7 @@
     "parameters": {
       "Left": [
         "Uuid",
-        "Varchar",
-        "Text"
+        "Varchar"
       ]
     },
     "nullable": [
@@ -66,5 +65,5 @@
       false
     ]
   },
-  "hash": "c9e1ac382a2715b209a5459bf36bc498f5280bfabc56924620fb4034da78cd9f"
+  "hash": "c4607b5a688a36335dc25a3629f433a8ba187567467da6837f0c0563ace7c654"
 }

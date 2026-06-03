@@ -20,11 +20,4 @@ pub struct UpdateProfileRequest {
     /// Nama baru (opsional, 1–100 karakter)
     #[validate(length(min = 1, max = 100, message = "name must be 1–100 characters"))]
     pub name: Option<String>,
-
-    /// Password lama — wajib diisi jika ingin ganti password
-    pub current_password: Option<String>,
-
-    /// Password baru (opsional, min 8 karakter)
-    #[validate(length(min = 8, message = "new_password must be at least 8 characters"))]
-    pub new_password: Option<String>,
 }
