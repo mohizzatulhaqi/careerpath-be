@@ -40,6 +40,7 @@ impl Modify for SecurityAddon {
         crate::features::auth::handler::refresh,
         crate::features::auth::handler::logout,
         crate::features::auth::handler::change_password,
+        crate::features::auth::handler::reset_password,
         // Quiz
         crate::features::quiz::handler::get_questions,
         crate::features::quiz::handler::create_attempt,
@@ -155,6 +156,7 @@ impl Modify for SecurityAddon {
         crate::features::auth::dto::RefreshRequest,
         crate::features::auth::dto::LogoutRequest,
         crate::features::auth::dto::ChangePasswordRequest,
+        crate::features::auth::dto::ResetPasswordRequest,
         crate::features::auth::dto::UserResponse,
         crate::features::auth::dto::AuthResponse,
         crate::features::auth::dto::TokenResponse,

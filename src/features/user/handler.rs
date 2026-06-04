@@ -74,9 +74,8 @@ pub async fn update_profile(
     // Validate field constraints
     body.validate().map_err(|e| AppError::Validation(e.to_string()))?;
 
-    // name is the only updatable field
-    if body.name.is_none() {
-        return Err(AppError::BadRequest("provide at least name to update".into()));
+    if body.name.is_none() && body.email.is_none() {
+        return Err(AppError::BadRequest("provide at least one field to update: name or email".into()));
     }
 
     let new_name: Option<String> = match &body.name {
@@ -87,17 +86,36 @@ pub async fn update_profile(
         None => None,
     };
 
+    // Check email uniqueness before updating
+    if let Some(new_email) = &body.email {
+        let taken = sqlx::query_scalar!(
+            "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1 AND id != $2)",
+            new_email,
+            auth.user_id,
+        )
+        .fetch_one(&state.db)
+        .await
+        .map_err(|e| AppError::Internal(e.into()))?
+        .unwrap_or(false);
+
+        if taken {
+            return Err(AppError::Conflict("email already in use".into()));
+        }
+    }
+
     let updated = sqlx::query!(
         r#"
         UPDATE users
         SET
             name       = COALESCE($2, name),
+            email      = COALESCE($3, email),
             updated_at = NOW()
         WHERE id = $1
         RETURNING id, email, name, role AS "role: String", is_active, created_at, updated_at
         "#,
         auth.user_id,
         new_name,
+        body.email,
     )
     .fetch_one(&state.db)
     .await

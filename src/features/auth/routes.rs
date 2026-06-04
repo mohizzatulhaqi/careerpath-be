@@ -10,9 +10,10 @@ pub fn router() -> Router<Arc<AppState>> {
     let limiter = rate_limit::new_limiter(10);
 
     let throttled = Router::new()
-        .route("/login",   post(handler::login))
-        .route("/register", post(handler::register))
-        .route("/refresh", post(handler::refresh))
+        .route("/login",          post(handler::login))
+        .route("/register",       post(handler::register))
+        .route("/refresh",        post(handler::refresh))
+        .route("/reset-password", post(handler::reset_password))
         .layer(axum_middleware::from_fn(move |req, next| {
             let limiter = limiter.clone();
             async move { rate_limit::check(limiter, req, next).await }

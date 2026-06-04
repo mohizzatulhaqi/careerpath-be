@@ -20,4 +20,8 @@ pub struct UpdateProfileRequest {
     /// Nama baru (opsional, 1–100 karakter)
     #[validate(length(min = 1, max = 100, message = "name must be 1–100 characters"))]
     pub name: Option<String>,
+
+    /// Email baru (opsional)
+    #[validate(email(message = "Invalid email format"))]
+    pub email: Option<String>,
 }

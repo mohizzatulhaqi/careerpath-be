@@ -1,6 +1,6 @@
 use crate::{
     features::auth::{
-        dto::{AuthResponse, ChangePasswordRequest, LoginRequest, RegisterRequest, TokenResponse, UserResponse},
+        dto::{AuthResponse, ChangePasswordRequest, LoginRequest, RegisterRequest, ResetPasswordRequest, TokenResponse, UserResponse},
         error::AuthError,
         repository,
     },
@@ -189,6 +189,24 @@ pub async fn change_password(
 
     let new_hash = password::hash_password(&req.new_password)?;
     repository::update_password(&state.db, user_id, &new_hash).await?;
+
+    Ok(())
+}
+
+pub async fn reset_password(
+    state: &Arc<AppState>,
+    req: ResetPasswordRequest,
+) -> Result<(), AuthError> {
+    let user = repository::find_by_email(&state.db, &req.email)
+        .await?
+        .ok_or(AuthError::InvalidCredentials)?;
+
+    if !password::verify_password(&req.old_password, &user.password_hash)? {
+        return Err(AuthError::InvalidCredentials);
+    }
+
+    let new_hash = password::hash_password(&req.new_password)?;
+    repository::update_password(&state.db, user.id, &new_hash).await?;
 
     Ok(())
 }
