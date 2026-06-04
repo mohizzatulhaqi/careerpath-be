@@ -68,6 +68,21 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
+    // Keep Render free tier awake by pinging /health every 10 minutes.
+    tokio::spawn(async move {
+        let url = format!("http://localhost:{port}/health");
+        let client = reqwest::Client::new();
+        // Wait for the server to be ready before the first ping.
+        tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
+        loop {
+            match client.get(&url).send().await {
+                Ok(r) => tracing::info!("Keepalive ping → {}", r.status()),
+                Err(e) => tracing::warn!("Keepalive ping failed: {e}"),
+            }
+            tokio::time::sleep(tokio::time::Duration::from_secs(10 * 60)).await;
+        }
+    });
+
     let router = app::create_app(state);
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await?;
     tracing::info!("Server listening on http://0.0.0.0:{port}");
