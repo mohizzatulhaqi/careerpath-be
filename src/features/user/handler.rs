@@ -3,9 +3,13 @@ use serde_json::json;
 use std::sync::Arc;
 use validator::Validate;
 
-use super::dto::{ProfileResponse, UpdateProfileRequest};
+use super::dto::{
+    ProfileActivityDto, ProfileCareerRoleDto, ProfileCertificateDto, ProfileResponse,
+    ProfileStatsDto, ProfileSummaryResponse, UpdateProfileRequest,
+};
 use crate::{
     error::AppError,
+    features::dashboard::service as dashboard_service,
     middleware::auth::AuthUser,
     shared::sanitization,
     state::AppState,
@@ -131,6 +135,84 @@ pub async fn update_profile(
             is_active: updated.is_active,
             created_at: updated.created_at,
             updated_at: updated.updated_at,
+        }
+    })))
+}
+
+// ── GET /api/users/me/summary ─────────────────────────────────────────────────
+
+#[utoipa::path(
+    get,
+    path = "/api/users/me/summary",
+    tag = "User",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Profile summary for display page", body = ProfileSummaryResponse),
+        (status = 401, description = "Unauthorized"),
+    )
+)]
+pub async fn get_profile_summary(
+    auth: AuthUser,
+    State(state): State<Arc<AppState>>,
+) -> Result<impl IntoResponse, AppError> {
+    // Parallel: dashboard data + approved projects count
+    let (dashboard_res, approved_res) = tokio::join!(
+        dashboard_service::get_full_dashboard(&state.db, auth.user_id, &state.config.app_base_url),
+        sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) FROM project_submissions WHERE user_id = $1 AND status = 'approved'",
+        )
+        .bind(auth.user_id)
+        .fetch_one(&state.db),
+    );
+
+    let dashboard = dashboard_res?;
+    let projects_approved = approved_res.map_err(|e| AppError::Internal(e.into()))?;
+
+    let base_url = &state.config.app_base_url;
+
+    let certificates = dashboard
+        .certificates
+        .into_iter()
+        .map(|c| ProfileCertificateDto {
+            download_url: format!("{}/api/certificates/me/{}/download.pdf", base_url, c.id),
+            id: c.id,
+            certificate_code: c.certificate_code,
+            role_name: c.role_name,
+            issued_at: c.issued_at,
+            is_revoked: c.is_revoked,
+            verification_url: c.verification_url,
+        })
+        .collect();
+
+    let recent_activities = dashboard
+        .recent_activities
+        .into_iter()
+        .map(|a| ProfileActivityDto {
+            kind: a.kind,
+            title: a.title,
+            detail: a.detail,
+            occurred_at: a.occurred_at,
+        })
+        .collect();
+
+    Ok(Json(json!({
+        "success": true,
+        "data": ProfileSummaryResponse {
+            id: dashboard.user.id,
+            name: dashboard.user.name,
+            email: dashboard.user.email,
+            member_since: dashboard.user.member_since,
+            career_role: dashboard.career_path.role.map(|r| ProfileCareerRoleDto {
+                code: r.code,
+                name: r.name,
+            }),
+            stats: ProfileStatsDto {
+                modules_completed: dashboard.learning_progress.completed_modules,
+                modules_total: dashboard.learning_progress.total_modules,
+                projects_approved,
+            },
+            certificates,
+            recent_activities,
         }
     })))
 }

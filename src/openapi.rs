@@ -33,6 +33,7 @@ impl Modify for SecurityAddon {
         // User profile
         crate::features::user::handler::get_profile,
         crate::features::user::handler::update_profile,
+        crate::features::user::handler::get_profile_summary,
         // Auth
         crate::features::auth::handler::register,
         crate::features::auth::handler::login,
@@ -150,6 +151,11 @@ impl Modify for SecurityAddon {
         // User profile
         crate::features::user::dto::ProfileResponse,
         crate::features::user::dto::UpdateProfileRequest,
+        crate::features::user::dto::ProfileSummaryResponse,
+        crate::features::user::dto::ProfileCareerRoleDto,
+        crate::features::user::dto::ProfileStatsDto,
+        crate::features::user::dto::ProfileCertificateDto,
+        crate::features::user::dto::ProfileActivityDto,
         // Auth
         crate::features::auth::dto::RegisterRequest,
         crate::features::auth::dto::LoginRequest,
