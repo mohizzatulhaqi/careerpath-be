@@ -430,6 +430,42 @@ pub async fn get_full_dashboard(
 
     // Build career_path section
     let has_taken_quiz = career_row.is_some();
+
+    // User belum prequiz — return early dengan data minimal
+    if !has_taken_quiz {
+        return Ok(DashboardResponse {
+            prequiz_required: true,
+            prequiz_message: Some(
+                "Silahkan selesaikan prequiz terlebih dahulu untuk mengakses dashboard belajar."
+                    .into(),
+            ),
+            user: UserSummaryDto {
+                id: user_row.id,
+                name: user_row.name,
+                email: user_row.email,
+                member_since: user_row.created_at,
+            },
+            career_path: CareerPathSummaryDto {
+                has_taken_quiz: false,
+                role: None,
+                match_percentage: None,
+                quiz_taken_at: None,
+                last_quiz_attempt_id: None,
+            },
+            learning_progress: LearningProgressSummaryDto::default(),
+            final_project: FinalProjectSummaryDto::default(),
+            next_action: NextActionDto {
+                code: "TAKE_QUIZ".into(),
+                title: "Temukan Career Path kamu".into(),
+                description:
+                    "Jawab kuis singkat untuk mengetahui role yang paling cocok untukmu".into(),
+                target_url: "/quiz".into(),
+            },
+            recent_activities: vec![],
+            certificates: vec![],
+        });
+    }
+
     let career_path = match &career_row {
         None => CareerPathSummaryDto {
             has_taken_quiz: false,
@@ -539,6 +575,8 @@ pub async fn get_full_dashboard(
         .collect();
 
     Ok(DashboardResponse {
+        prequiz_required: false,
+        prequiz_message: None,
         user: UserSummaryDto {
             id: user_row.id,
             name: user_row.name,

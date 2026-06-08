@@ -7,6 +7,10 @@ use uuid::Uuid;
 
 #[derive(Debug, Serialize, ToSchema)]
 pub struct DashboardResponse {
+    /// true jika user belum menyelesaikan prequiz — data learning tidak tersedia.
+    pub prequiz_required: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prequiz_message: Option<String>,
     pub user: UserSummaryDto,
     pub career_path: CareerPathSummaryDto,
     pub learning_progress: LearningProgressSummaryDto,
