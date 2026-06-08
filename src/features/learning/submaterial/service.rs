@@ -6,7 +6,7 @@ use crate::{
     features::learning::{
         error::LearningError,
         module::repository as module_repo,
-        module_quiz::scoring::FINAL_QUIZ_PASSING_SCORE,
+        module_quiz::{repository as module_quiz_repo, scoring::FINAL_QUIZ_PASSING_SCORE},
         progress::{
             gating::{self, ModuleInfo, SubmaterialInfo},
             repository as progress_repo,
@@ -14,8 +14,8 @@ use crate::{
         },
         submaterial::{
             dto::{
-                CompleteModuleStatus, CompleteSubmaterialResponse, NextModuleUnlocked,
-                SubmaterialDetailResponse, SubmaterialModuleInfo,
+                CompleteModuleStatus, CompleteSubmaterialResponse, FinalQuizStatusDto,
+                NextModuleUnlocked, SubmaterialDetailResponse, SubmaterialModuleInfo,
             },
             repository,
         },
@@ -50,10 +50,31 @@ pub async fn get_submaterial(
     // Assert submaterial unlocked
     assert_submaterial_unlocked(state, user_id, sub.module_id, sub.order_index).await?;
 
-    // Check completion
-    let completed_ids =
-        progress_repo::get_completed_submaterial_ids_for_module(&state.db, user_id, sub.module_id)
-            .await?;
+    // Parallel: completion status + all subs list + final quiz status
+    let (completed_ids_res, all_subs_res, quiz_status_res) = tokio::join!(
+        progress_repo::get_completed_submaterial_ids_for_module(&state.db, user_id, sub.module_id),
+        repository::get_submaterials_for_module(&state.db, sub.module_id),
+        module_quiz_repo::get_final_quiz_status(&state.db, user_id, sub.module_id),
+    );
+
+    let completed_ids = completed_ids_res?;
+    let all_subs = all_subs_res?;
+    let quiz_status = quiz_status_res.map_err(LearningError::Database)?;
+
+    let total_subs = all_subs.len();
+    let is_last_submaterial = all_subs
+        .last()
+        .map(|s| s.id == sub.id)
+        .unwrap_or(false);
+    let all_subs_completed = total_subs > 0 && completed_ids.len() == total_subs;
+
+    let final_quiz = FinalQuizStatusDto {
+        is_last_submaterial,
+        all_subs_completed,
+        has_questions: quiz_status.total_questions > 0,
+        is_passed: quiz_status.is_passed,
+        best_score: quiz_status.best_score,
+    };
 
     Ok(SubmaterialDetailResponse {
         id: sub.id,
@@ -67,6 +88,7 @@ pub async fn get_submaterial(
             title: module.title,
             order_index: module.order_index,
         },
+        final_quiz,
     })
 }
 

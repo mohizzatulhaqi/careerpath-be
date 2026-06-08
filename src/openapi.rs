@@ -217,6 +217,7 @@ impl Modify for SecurityAddon {
         crate::features::learning::progress::dto::OverallProgressResponse,
         // Learning - Submaterial
         crate::features::learning::submaterial::dto::SubmaterialModuleInfo,
+        crate::features::learning::submaterial::dto::FinalQuizStatusDto,
         crate::features::learning::submaterial::dto::SubmaterialDetailResponse,
         crate::features::learning::submaterial::dto::CompleteModuleStatus,
         crate::features::learning::submaterial::dto::NextModuleUnlocked,

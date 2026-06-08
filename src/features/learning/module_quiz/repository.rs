@@ -84,6 +84,37 @@ pub async fn insert_answer(
     Ok(())
 }
 
+#[derive(Debug, sqlx::FromRow)]
+pub struct FinalQuizStatusRow {
+    pub total_questions: i64,
+    pub best_score: Option<f64>,
+    pub is_passed: bool,
+}
+
+/// Single-query summary: total published questions + best attempt score + ever passed.
+/// Always returns exactly one row.
+pub async fn get_final_quiz_status(
+    pool: &PgPool,
+    user_id: Uuid,
+    module_id: Uuid,
+) -> Result<FinalQuizStatusRow, sqlx::Error> {
+    sqlx::query_as::<_, FinalQuizStatusRow>(
+        r#"
+        SELECT
+            (SELECT COUNT(*) FROM module_quizzes
+             WHERE module_id = $1 AND is_published = true) AS total_questions,
+            MAX(score)                                      AS best_score,
+            COALESCE(BOOL_OR(passed), false)                AS is_passed
+        FROM module_quiz_attempts
+        WHERE module_id = $1 AND user_id = $2
+        "#,
+    )
+    .bind(module_id)
+    .bind(user_id)
+    .fetch_one(pool)
+    .await
+}
+
 pub async fn get_attempts_for_user(
     pool: &PgPool,
     user_id: Uuid,

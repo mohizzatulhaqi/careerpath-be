@@ -13,6 +13,20 @@ pub struct SubmaterialModuleInfo {
 }
 
 #[derive(Debug, Serialize, ToSchema)]
+pub struct FinalQuizStatusDto {
+    /// Apakah ini submaterial terakhir dalam modul.
+    pub is_last_submaterial: bool,
+    /// Apakah semua submaterials dalam modul sudah selesai.
+    pub all_subs_completed: bool,
+    /// Apakah modul punya soal final quiz.
+    pub has_questions: bool,
+    /// Apakah user sudah lulus final quiz (score >= 70).
+    pub is_passed: bool,
+    /// Skor terbaik user. None jika belum pernah attempt.
+    pub best_score: Option<f64>,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
 pub struct SubmaterialDetailResponse {
     pub id: Uuid,
     pub title: String,
@@ -21,6 +35,7 @@ pub struct SubmaterialDetailResponse {
     pub estimated_minutes: i32,
     pub is_completed: bool,
     pub module: SubmaterialModuleInfo,
+    pub final_quiz: FinalQuizStatusDto,
 }
 
 #[derive(Debug, Serialize, ToSchema)]
